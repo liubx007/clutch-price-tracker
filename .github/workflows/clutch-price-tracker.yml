@@ -1,6 +1,14 @@
 name: Clutch price tracker
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/clutch-price-tracker.yml"
+      - "car_price_tracker/track_clutch_price.py"
+      - "docs/index.html"
+      - "README.md"
   schedule:
     - cron: "17 */6 * * *"
   workflow_dispatch:
