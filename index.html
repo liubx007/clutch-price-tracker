@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Clutch 价格监控</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f3f5f7;
+        --panel: #ffffff;
+        --panel-soft: #f8fafb;
+        --ink: #18202a;
+        --muted: #67717f;
+        --line: #dce2e8;
+        --accent: #0a6f5a;
+        --accent-strong: #075949;
+        --accent-soft: #e3f3ee;
+        --alert: #9a4b00;
+        --alert-soft: #fff2df;
+        --shadow: 0 12px 30px rgba(21, 30, 42, 0.08);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+      }
+
+      main {
+        width: min(1180px, 100%);
+        margin: 0 auto;
+        padding: 18px;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 8px 0 18px;
+      }
+
+      .brand {
+        display: grid;
+        gap: 3px;
+      }
+
+      .brand span {
+        color: var(--muted);
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .brand strong {
+        font-size: 20px;
+        letter-spacing: 0;
+      }
+
+      .open-link {
+        border: 1px solid var(--line);
+        background: var(--panel);
+        border-radius: 8px;
+        color: var(--accent-strong);
+        font-size: 14px;
+        font-weight: 680;
+        padding: 10px 12px;
+        white-space: nowrap;
+      }
+
+      .hero {
+        display: grid;
+        overflow: hidden;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+      }
+
+      .photo-wrap {
+        position: relative;
+        min-height: 245px;
+        background: var(--panel-soft);
+      }
+
+      .vehicle-photo {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 245px;
+        object-fit: cover;
+      }
+
+      .photo-note {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.65);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.86);
+        color: var(--muted);
+        font-size: 12px;
+        padding: 6px 9px;
+        backdrop-filter: blur(8px);
+      }
+
+      .hero-details {
+        display: grid;
+        gap: 18px;
+        padding: 18px;
+      }
+
+      .title-row {
+        display: grid;
+        gap: 10px;
+      }
+
+      h1 {
+        font-size: 28px;
+        line-height: 1.12;
+        font-weight: 780;
+        letter-spacing: 0;
+      }
+
+      .meta-line {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .status-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent-strong);
+        font-size: 13px;
+        font-weight: 740;
+        padding: 6px 10px;
+      }
+
+      .badge.warn {
+        background: var(--alert-soft);
+        color: var(--alert);
+      }
+
+      .price-block {
+        display: grid;
+        gap: 6px;
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 680;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .price {
+        font-size: 50px;
+        line-height: 1;
+        font-weight: 850;
+        letter-spacing: 0;
+      }
+
+      .change {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border-top: 1px solid var(--line);
+        border-left: 1px solid var(--line);
+      }
+
+      .metric {
+        min-height: 92px;
+        padding: 13px;
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .metric-value {
+        margin-top: 8px;
+        font-size: 18px;
+        line-height: 1.25;
+        font-weight: 740;
+        overflow-wrap: anywhere;
+      }
+
+      .grid {
+        display: grid;
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .panel-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px 16px 0;
+      }
+
+      h2 {
+        font-size: 16px;
+        line-height: 1.3;
+        font-weight: 760;
+      }
+
+      .panel-subtitle {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .chart-wrap {
+        height: 270px;
+        padding: 8px 12px 14px;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 13px 16px;
+        border-top: 1px solid var(--line);
+        text-align: left;
+        vertical-align: top;
+        font-size: 14px;
+      }
+
+      th {
+        color: var(--muted);
+        background: #fbfcfd;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      td strong {
+        font-weight: 740;
+      }
+
+      .footer {
+        padding: 18px 0 4px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      @media (min-width: 860px) {
+        main {
+          padding: 28px;
+        }
+
+        .hero {
+          grid-template-columns: minmax(390px, 0.95fr) minmax(420px, 1.05fr);
+        }
+
+        .photo-wrap,
+        .vehicle-photo {
+          min-height: 500px;
+        }
+
+        .hero-details {
+          padding: 28px;
+        }
+
+        h1 {
+          font-size: 36px;
+        }
+
+        .price {
+          font-size: 62px;
+        }
+
+        .metrics {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .grid {
+          grid-template-columns: 1.1fr 0.9fr;
+          align-items: start;
+        }
+
+        .history-panel {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 520px) {
+        main {
+          padding: 12px;
+        }
+
+        .brand strong {
+          font-size: 17px;
+        }
+
+        .open-link {
+          padding: 9px 10px;
+          font-size: 13px;
+        }
+
+        .price {
+          font-size: 42px;
+        }
+
+        .metrics {
+          grid-template-columns: 1fr;
+        }
+
+        th:nth-child(3),
+        td:nth-child(3) {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <nav class="topbar" aria-label="Page header">
+        <div class="brand">
+          <span>Clutch Monitor</span>
+          <strong>车辆价格看板</strong>
+        </div>
+        <a class="open-link" id="vehicleLink" href="https://www.clutch.ca/vehicles/115601">打开原车源</a>
+      </nav>
+
+      <section class="hero" aria-live="polite">
+        <div class="photo-wrap">
+          <img class="vehicle-photo" id="vehiclePhoto" alt="Tracked vehicle" src="">
+          <span class="photo-note" id="photoNote">Clutch 图片</span>
+        </div>
+
+        <div class="hero-details">
+          <div class="title-row">
+            <div class="status-row">
+              <span class="badge" id="state">读取中</span>
+              <span class="badge" id="visibility">--</span>
+            </div>
+            <h1 id="title">Clutch 车辆</h1>
+            <p class="meta-line" id="subtitle">正在读取最新价格...</p>
+          </div>
+
+          <div class="price-block">
+            <p class="label">当前车价</p>
+            <p class="price" id="price">--</p>
+            <p class="change" id="changeText">等待最新记录</p>
+          </div>
+
+          <div class="metrics">
+            <div class="metric">
+              <p class="label">预估含税</p>
+              <p class="metric-value" id="afterTax">--</p>
+            </div>
+            <div class="metric">
+              <p class="label">税前小计</p>
+              <p class="metric-value" id="subtotal">--</p>
+            </div>
+            <div class="metric">
+              <p class="label">Admin fee</p>
+              <p class="metric-value" id="adminFee">--</p>
+            </div>
+            <div class="metric">
+              <p class="label">里程</p>
+              <p class="metric-value" id="mileage">--</p>
+            </div>
+            <div class="metric">
+              <p class="label">省份</p>
+              <p class="metric-value" id="province">--</p>
+            </div>
+            <div class="metric">
+              <p class="label">最近检查</p>
+              <p class="metric-value" id="checkedAt">--</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>价格趋势</h2>
+            <span class="panel-subtitle" id="chartSubtitle">--</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="priceChart" width="900" height="360"></canvas>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>车辆信息</h2>
+            <span class="panel-subtitle" id="listingType">--</span>
+          </div>
+          <div class="metrics">
+            <div class="metric">
+              <p class="label">车源编号</p>
+              <p class="metric-value" id="vehicleId">--</p>
+            </div>
+            <div class="metric">
+              <p class="label">外观颜色</p>
+              <p class="metric-value" id="color">--</p>
+            </div>
+            <div class="metric">
+              <p class="label">驱动 / 燃油</p>
+              <p class="metric-value" id="drivetrain">--</p>
+            </div>
+            <div class="metric">
+              <p class="label">页面状态</p>
+              <p class="metric-value" id="disposition">--</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel history-panel">
+          <div class="panel-head">
+            <h2>历史记录</h2>
+            <span class="panel-subtitle" id="historyCount">--</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>检查时间</th>
+                <th>车价</th>
+                <th>税前小计</th>
+                <th>状态</th>
+              </tr>
+            </thead>
+            <tbody id="history">
+              <tr><td colspan="4">正在读取...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <p class="footer" id="footerText">价格数据来自 Clutch API，并由 GitHub Actions 定时刷新。</p>
+    </main>
+
+    <script>
+      const money = new Intl.NumberFormat("en-CA", {
+        style: "currency",
+        currency: "CAD",
+        maximumFractionDigits: 0
+      });
+      const number = new Intl.NumberFormat("en-CA");
+
+      function formatMoney(value) {
+        return typeof value === "number" ? money.format(value) : "--";
+      }
+
+      function formatNumber(value) {
+        return typeof value === "number" ? number.format(value) : "--";
+      }
+
+      function formatDate(value) {
+        if (!value) return "--";
+        return new Intl.DateTimeFormat("zh-CN", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        }).format(new Date(value));
+      }
+
+      function formatFullDate(value) {
+        if (!value) return "--";
+        return new Intl.DateTimeFormat("zh-CN", {
+          dateStyle: "medium",
+          timeStyle: "short"
+        }).format(new Date(value));
+      }
+
+      function setText(id, value) {
+        document.getElementById(id).textContent = value;
+      }
+
+      function setBadge(id, value, warn) {
+        const el = document.getElementById(id);
+        el.textContent = value || "--";
+        el.classList.toggle("warn", Boolean(warn));
+      }
+
+      function priceDelta(latest, previous) {
+        if (!latest || !previous || typeof latest.price !== "number" || typeof previous.price !== "number") {
+          return "暂无价格变化记录";
+        }
+        const delta = latest.price - previous.price;
+        if (delta === 0) return `较上次记录无变化，仍为 ${formatMoney(latest.price)}`;
+        const direction = delta > 0 ? "上涨" : "下降";
+        return `较上次记录${direction} ${formatMoney(Math.abs(delta))}`;
+      }
+
+      function renderHistory(items) {
+        const rows = [...items].reverse().map((item) => `
+          <tr>
+            <td>${formatFullDate(item.checked_at)}</td>
+            <td><strong>${formatMoney(item.price)}</strong></td>
+            <td>${formatMoney(item.subtotal_before_tax)}</td>
+            <td>${item.website_state || "--"}</td>
+          </tr>
+        `);
+        document.getElementById("history").innerHTML = rows.join("") || '<tr><td colspan="4">暂无历史记录</td></tr>';
+      }
+
+      function drawChart(items) {
+        const canvas = document.getElementById("priceChart");
+        const ctx = canvas.getContext("2d");
+        const rect = canvas.getBoundingClientRect();
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.max(640, Math.floor(rect.width * ratio));
+        canvas.height = Math.max(280, Math.floor(rect.height * ratio));
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+        const width = canvas.width / ratio;
+        const height = canvas.height / ratio;
+        const pad = { top: 24, right: 18, bottom: 42, left: 70 };
+        ctx.clearRect(0, 0, width, height);
+
+        const points = items.filter((item) => typeof item.price === "number");
+        if (!points.length) {
+          ctx.fillStyle = "#67717f";
+          ctx.font = "14px system-ui";
+          ctx.fillText("暂无价格数据", pad.left, height / 2);
+          return;
+        }
+
+        let min = Math.min(...points.map((item) => item.price));
+        let max = Math.max(...points.map((item) => item.price));
+        if (min === max) {
+          min -= 500;
+          max += 500;
+        }
+
+        const plotW = width - pad.left - pad.right;
+        const plotH = height - pad.top - pad.bottom;
+        const xFor = (index) => pad.left + (points.length === 1 ? plotW / 2 : (index / (points.length - 1)) * plotW);
+        const yFor = (value) => pad.top + (1 - (value - min) / (max - min)) * plotH;
+
+        ctx.strokeStyle = "#dce2e8";
+        ctx.lineWidth = 1;
+        ctx.fillStyle = "#67717f";
+        ctx.font = "12px system-ui";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        for (let i = 0; i <= 4; i += 1) {
+          const value = min + ((max - min) * i) / 4;
+          const y = yFor(value);
+          ctx.beginPath();
+          ctx.moveTo(pad.left, y);
+          ctx.lineTo(width - pad.right, y);
+          ctx.stroke();
+          ctx.fillText(formatMoney(value), pad.left - 8, y);
+        }
+
+        const area = new Path2D();
+        points.forEach((item, index) => {
+          const x = xFor(index);
+          const y = yFor(item.price);
+          if (index === 0) area.moveTo(x, y);
+          else area.lineTo(x, y);
+        });
+        area.lineTo(xFor(points.length - 1), pad.top + plotH);
+        area.lineTo(xFor(0), pad.top + plotH);
+        area.closePath();
+        const fill = ctx.createLinearGradient(0, pad.top, 0, pad.top + plotH);
+        fill.addColorStop(0, "rgba(10, 111, 90, 0.22)");
+        fill.addColorStop(1, "rgba(10, 111, 90, 0.02)");
+        ctx.fillStyle = fill;
+        ctx.fill(area);
+
+        ctx.strokeStyle = "#0a6f5a";
+        ctx.lineWidth = 3;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        points.forEach((item, index) => {
+          const x = xFor(index);
+          const y = yFor(item.price);
+          if (index === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        points.forEach((item, index) => {
+          const x = xFor(index);
+          const y = yFor(item.price);
+          ctx.fillStyle = "#ffffff";
+          ctx.strokeStyle = "#0a6f5a";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        });
+
+        ctx.fillStyle = "#67717f";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        const first = points[0];
+        const last = points[points.length - 1];
+        ctx.fillText(formatDate(first.checked_at), xFor(0), height - pad.bottom + 16);
+        ctx.fillText(formatDate(last.checked_at), xFor(points.length - 1), height - pad.bottom + 16);
+      }
+
+      async function loadStatus() {
+        const response = await fetch(`status.json?cache=${Date.now()}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const status = await response.json();
+        const latest = status.latest || {};
+        const previous = status.previous || null;
+        const vehicle = status.vehicle || {};
+        const history = status.history || [];
+
+        const title = `${vehicle.year || latest.year || ""} ${vehicle.name || latest.name || "Clutch 车辆"}`.trim();
+        setText("title", title);
+        setText("subtitle", `${latest.make || vehicle.make || ""} ${latest.model || vehicle.model || ""} ${latest.trim || vehicle.trim || ""} · ${formatNumber(vehicle.mileage || latest.mileage)} km`.trim());
+        setText("price", formatMoney(latest.price));
+        setText("changeText", priceDelta(latest, previous));
+        setText("afterTax", formatMoney(latest.estimated_after_tax));
+        setText("subtotal", formatMoney(latest.subtotal_before_tax));
+        setText("adminFee", formatMoney(latest.admin_fee));
+        setText("mileage", `${formatNumber(vehicle.mileage || latest.mileage)} km`);
+        setText("province", status.province || latest.province || "--");
+        setText("checkedAt", formatDate(latest.checked_at));
+        setText("vehicleId", vehicle.id || latest.vehicle_id || "--");
+        setText("color", latest.exterior_color || vehicle.exterior_color || "Grey");
+        setText("drivetrain", [latest.drivetrain, latest.fuel_type].filter(Boolean).join(" / ") || "AWD / Gasoline");
+        setText("disposition", latest.current_disposition || "--");
+        setText("listingType", latest.listing_type || "--");
+        setText("historyCount", `${history.length} 条记录`);
+        setText("chartSubtitle", history.length > 1 ? "最近价格检查" : "等待更多检查点");
+        setText("footerText", `最后刷新：${formatFullDate(latest.checked_at)}。数据来自 Clutch API。`);
+
+        const imageUrl = vehicle.image_url || latest.image_url;
+        const img = document.getElementById("vehiclePhoto");
+        if (imageUrl) img.src = imageUrl;
+        img.alt = title;
+        document.getElementById("photoNote").textContent = imageUrl ? "Clutch 车辆图片" : "暂无车辆图片";
+
+        setBadge("state", latest.website_state || "--", latest.website_state !== "COMING_SOON" && latest.website_state !== "AVAILABLE");
+        setBadge("visibility", latest.visible_on_site ? "页面可见" : "页面不可见", !latest.visible_on_site);
+
+        const link = document.getElementById("vehicleLink");
+        link.href = vehicle.url || latest.url || link.href;
+        renderHistory(history);
+        drawChart(history.length ? history : [latest]);
+      }
+
+      loadStatus().catch((error) => {
+        setText("subtitle", `读取 status.json 失败：${error.message}`);
+        setBadge("state", "读取失败", true);
+        drawChart([]);
+      });
+
+      window.addEventListener("resize", () => {
+        fetch(`status.json?cache=${Date.now()}`)
+          .then((response) => response.json())
+          .then((status) => drawChart(status.history || []))
+          .catch(() => {});
+      });
+    </script>
+  </body>
+</html>

@@ -7,6 +7,7 @@ on:
     paths:
       - ".github/workflows/clutch-price-tracker.yml"
       - "car_price_tracker/track_clutch_price.py"
+      - "index.html"
       - "docs/index.html"
       - "README.md"
   schedule:
@@ -44,11 +45,14 @@ jobs:
             --issue-body-file car_price_tracker/last_issue.md \
             --public-status-file docs/status.json
 
+      - name: Mirror public status for root Pages
+        run: cp docs/status.json status.json
+
       - name: Commit tracker outputs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add car_price_tracker/history/vehicle_115601.json car_price_tracker/last_issue.md docs/status.json
+          git add car_price_tracker/history/vehicle_115601.json car_price_tracker/last_issue.md docs/status.json status.json
           git diff --cached --quiet || git commit -m "Update Clutch vehicle 115601 price history"
           git push
 
