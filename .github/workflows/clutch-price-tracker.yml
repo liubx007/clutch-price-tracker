@@ -1,0 +1,71 @@
+name: Clutch price tracker
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: clutch-price-tracker
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pages: write
+  id-token: write
+
+jobs:
+  track:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Check Clutch price
+        id: track
+        run: |
+          python car_price_tracker/track_clutch_price.py \
+            --vehicle-id 115601 \
+            --province NS \
+            --state-file car_price_tracker/history/vehicle_115601.json \
+            --issue-body-file car_price_tracker/last_issue.md \
+            --public-status-file docs/status.json
+
+      - name: Commit tracker outputs
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add car_price_tracker/history/vehicle_115601.json car_price_tracker/last_issue.md docs/status.json
+          git diff --cached --quiet || git commit -m "Update Clutch vehicle 115601 price history"
+          git push
+
+      - name: Open notification issue
+        if: steps.track.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VEHICLE_NAME: ${{ steps.track.outputs.vehicle_name }}
+          PRICE: ${{ steps.track.outputs.price }}
+          WEBSITE_STATE: ${{ steps.track.outputs.website_state }}
+        run: |
+          gh issue create \
+            --title "Clutch change: ${VEHICLE_NAME} now CAD ${PRICE} (${WEBSITE_STATE})" \
+            --body-file car_price_tracker/last_issue.md
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

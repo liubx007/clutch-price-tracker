@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Clutch Price Tracker</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --ink: #1a1f29;
+        --muted: #626c7a;
+        --line: #dfe4ea;
+        --accent: #0d6b57;
+        --accent-soft: #e6f4ef;
+        --warn: #9b4d00;
+        --warn-soft: #fff3df;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+      }
+
+      main {
+        width: min(980px, 100%);
+        margin: 0 auto;
+        padding: 18px;
+      }
+
+      header {
+        display: grid;
+        gap: 8px;
+        padding: 10px 0 18px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 26px;
+        line-height: 1.15;
+        font-weight: 760;
+      }
+
+      h2 {
+        font-size: 15px;
+        line-height: 1.3;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+      }
+
+      .subtle {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .hero {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 18px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .price-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      .price {
+        font-size: 44px;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        width: max-content;
+        max-width: 100%;
+        min-height: 30px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 680;
+      }
+
+      .badge.warn {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border-top: 1px solid var(--line);
+        border-left: 1px solid var(--line);
+      }
+
+      .metric {
+        min-height: 86px;
+        padding: 13px;
+        background: var(--panel);
+        border-right: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .label {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.3;
+        text-transform: uppercase;
+      }
+
+      .value {
+        margin-top: 7px;
+        font-size: 18px;
+        line-height: 1.2;
+        font-weight: 720;
+        overflow-wrap: anywhere;
+      }
+
+      .section {
+        margin-top: 18px;
+        display: grid;
+        gap: 10px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        font-size: 14px;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        background: #fbfcfd;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .footer {
+        padding: 18px 0 6px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      @media (min-width: 720px) {
+        main {
+          padding: 28px;
+        }
+
+        h1 {
+          font-size: 32px;
+        }
+
+        .hero {
+          padding: 24px;
+        }
+
+        .price-row {
+          grid-template-columns: 1fr auto;
+          align-items: start;
+        }
+
+        .metrics {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1 id="title">Clutch Price Tracker</h1>
+        <p class="subtle" id="subtitle">Loading latest vehicle data...</p>
+      </header>
+
+      <section class="hero" aria-live="polite">
+        <div class="price-row">
+          <div>
+            <p class="label">Current price</p>
+            <p class="price" id="price">--</p>
+          </div>
+          <span class="badge" id="state">Loading</span>
+        </div>
+
+        <div class="metrics">
+          <div class="metric">
+            <p class="label">Admin fee</p>
+            <p class="value" id="adminFee">--</p>
+          </div>
+          <div class="metric">
+            <p class="label">Before tax</p>
+            <p class="value" id="subtotal">--</p>
+          </div>
+          <div class="metric">
+            <p class="label">Est. after tax</p>
+            <p class="value" id="afterTax">--</p>
+          </div>
+          <div class="metric">
+            <p class="label">Last checked</p>
+            <p class="value" id="checkedAt">--</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Vehicle</h2>
+        <div class="metrics">
+          <div class="metric">
+            <p class="label">Mileage</p>
+            <p class="value" id="mileage">--</p>
+          </div>
+          <div class="metric">
+            <p class="label">Province</p>
+            <p class="value" id="province">--</p>
+          </div>
+          <div class="metric">
+            <p class="label">Visible</p>
+            <p class="value" id="visible">--</p>
+          </div>
+          <div class="metric">
+            <p class="label">Listing</p>
+            <p class="value" id="listing">--</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Recent History</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Checked</th>
+              <th>Price</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="history">
+            <tr><td colspan="3">Loading...</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <p class="footer">
+        Data is refreshed by GitHub Actions. <a id="vehicleLink" href="https://www.clutch.ca/vehicles/115601">Open the Clutch listing</a>.
+      </p>
+    </main>
+
+    <script>
+      const money = new Intl.NumberFormat("en-CA", {
+        style: "currency",
+        currency: "CAD",
+        maximumFractionDigits: 0
+      });
+
+      const number = new Intl.NumberFormat("en-CA");
+
+      function formatMoney(value) {
+        return typeof value === "number" ? money.format(value) : "--";
+      }
+
+      function formatDate(value) {
+        if (!value) return "--";
+        return new Intl.DateTimeFormat("en-CA", {
+          dateStyle: "medium",
+          timeStyle: "short"
+        }).format(new Date(value));
+      }
+
+      function setText(id, value) {
+        document.getElementById(id).textContent = value;
+      }
+
+      function renderHistory(items) {
+        const rows = [...items].reverse().map((item) => `
+          <tr>
+            <td>${formatDate(item.checked_at)}</td>
+            <td>${formatMoney(item.price)}</td>
+            <td>${item.website_state || "--"}</td>
+          </tr>
+        `);
+        document.getElementById("history").innerHTML = rows.join("") || '<tr><td colspan="3">No history yet.</td></tr>';
+      }
+
+      async function loadStatus() {
+        const response = await fetch(`status.json?cache=${Date.now()}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const status = await response.json();
+        const latest = status.latest || {};
+        const vehicle = status.vehicle || {};
+
+        setText("title", `${vehicle.year || ""} ${vehicle.name || "Clutch vehicle"}`.trim());
+        setText("subtitle", `Vehicle ${vehicle.id || "--"} tracked for ${status.province || "--"}`);
+        setText("price", formatMoney(latest.price));
+        setText("adminFee", formatMoney(latest.admin_fee));
+        setText("subtotal", formatMoney(latest.subtotal_before_tax));
+        setText("afterTax", formatMoney(latest.estimated_after_tax));
+        setText("checkedAt", formatDate(latest.checked_at));
+        setText("mileage", typeof vehicle.mileage === "number" ? `${number.format(vehicle.mileage)} km` : "--");
+        setText("province", status.province || "--");
+        setText("visible", latest.visible_on_site ? "Yes" : "No");
+        setText("listing", latest.listing_type || "--");
+
+        const state = document.getElementById("state");
+        state.textContent = latest.website_state || "--";
+        state.classList.toggle("warn", latest.website_state !== "COMING_SOON" && latest.website_state !== "AVAILABLE");
+
+        const link = document.getElementById("vehicleLink");
+        link.href = vehicle.url || latest.url || link.href;
+        renderHistory(status.history || []);
+      }
+
+      loadStatus().catch((error) => {
+        setText("subtitle", `Could not load status.json: ${error.message}`);
+        setText("state", "Error");
+        document.getElementById("state").classList.add("warn");
+      });
+    </script>
+  </body>
+</html>
+

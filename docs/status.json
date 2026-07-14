@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-07-14T17:06:52+00:00",
+  "initialized": true,
+  "changed": false,
+  "changed_fields": [],
+  "vehicle": {
+    "id": 115601,
+    "name": "Honda HR-V LX",
+    "year": 2023,
+    "make": "Honda",
+    "model": "HR-V",
+    "trim": "LX",
+    "mileage": 39800,
+    "url": "https://www.clutch.ca/vehicles/115601"
+  },
+  "province": "NS",
+  "latest": {
+    "checked_at": "2026-07-14T17:06:52+00:00",
+    "vehicle_id": 115601,
+    "url": "https://www.clutch.ca/vehicles/115601",
+    "name": "Honda HR-V LX",
+    "year": 2023,
+    "make": "Honda",
+    "model": "HR-V",
+    "trim": "LX",
+    "mileage": 39800,
+    "province": "NS",
+    "price": 26790,
+    "admin_fee": 899,
+    "subtotal_before_tax": 27689,
+    "tax_rate": 0.15,
+    "estimated_after_tax": 31842.35,
+    "website_state": "COMING_SOON",
+    "listing_type": "LISTED",
+    "visible_on_site": true,
+    "current_disposition": "RETAIL"
+  },
+  "previous": null,
+  "history": [
+    {
+      "checked_at": "2026-07-14T17:06:52+00:00",
+      "vehicle_id": 115601,
+      "url": "https://www.clutch.ca/vehicles/115601",
+      "name": "Honda HR-V LX",
+      "year": 2023,
+      "make": "Honda",
+      "model": "HR-V",
+      "trim": "LX",
+      "mileage": 39800,
+      "province": "NS",
+      "price": 26790,
+      "admin_fee": 899,
+      "subtotal_before_tax": 27689,
+      "tax_rate": 0.15,
+      "estimated_after_tax": 31842.35,
+      "website_state": "COMING_SOON",
+      "listing_type": "LISTED",
+      "visible_on_site": true,
+      "current_disposition": "RETAIL"
+    }
+  ]
+}
+
