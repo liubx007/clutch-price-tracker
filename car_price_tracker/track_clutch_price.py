@@ -140,7 +140,28 @@ def observation_from_vehicle(vehicle: dict[str, Any], province: str) -> dict[str
         "listing_type": vehicle.get("type"),
         "visible_on_site": vehicle.get("visibleOnSite"),
         "current_disposition": vehicle.get("currentDisposition"),
+        "check_status": "available",
+        "check_error": None,
     }
+
+
+def unavailable_observation(vehicle_id: str, province: str, previous: dict[str, Any] | None, error: Exception) -> dict[str, Any]:
+    current = dict(previous or {})
+    parsed_vehicle_id: int | str = int(vehicle_id) if vehicle_id.isdigit() else vehicle_id
+    current.update(
+        {
+            "checked_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "vehicle_id": current.get("vehicle_id") or parsed_vehicle_id,
+            "url": current.get("url") or f"https://www.clutch.ca/vehicles/{vehicle_id}",
+            "province": current.get("province") or province,
+            "website_state": "UNAVAILABLE",
+            "visible_on_site": False,
+            "current_disposition": "UNAVAILABLE",
+            "check_status": "unavailable",
+            "check_error": str(error),
+        }
+    )
+    return current
 
 
 def load_state(path: Path) -> dict[str, Any]:
@@ -164,6 +185,7 @@ def comparable(observation: dict[str, Any]) -> dict[str, Any]:
         "listing_type",
         "visible_on_site",
         "current_disposition",
+        "check_status",
     ]
     return {key: observation.get(key) for key in keys}
 
@@ -196,8 +218,11 @@ def build_issue_body(current: dict[str, Any], previous: dict[str, Any] | None) -
         f"- Current subtotal before tax: {money(current.get('subtotal_before_tax'))}",
         f"- Website state: {current.get('website_state')}",
         f"- Visible on site: {current.get('visible_on_site')}",
+        f"- Check status: {current.get('check_status') or 'available'}",
         f"- Checked at: {current.get('checked_at')}",
     ]
+    if current.get("check_error"):
+        lines.append(f"- Check error: {current.get('check_error')}")
     if previous:
         lines.extend(
             [
@@ -255,6 +280,14 @@ def build_public_status(
         "province": current.get("province"),
         "latest": current,
         "previous": previous,
+        "latest_valid": next(
+            (
+                item
+                for item in reversed(observations)
+                if item.get("check_status", "available") == "available" and item.get("price") is not None
+            ),
+            None,
+        ),
         "history": history,
     }
 
@@ -285,11 +318,15 @@ def main() -> int:
     state_path = Path(args.state_file)
     issue_body_path = Path(args.issue_body_file)
 
-    vehicle = fetch_vehicle(args.vehicle_id, args.retries, args.retry_delay)
-    current = observation_from_vehicle(vehicle, args.province)
     state = load_state(state_path)
     observations = state.setdefault("observations", [])
     previous = observations[-1] if observations else None
+
+    try:
+        vehicle = fetch_vehicle(args.vehicle_id, args.retries, args.retry_delay)
+        current = observation_from_vehicle(vehicle, args.province)
+    except Exception as exc:
+        current = unavailable_observation(args.vehicle_id, args.province, previous, exc)
 
     initialized = previous is None
     changed = bool(previous and comparable(previous) != comparable(current))
@@ -320,6 +357,9 @@ def main() -> int:
     print(f"Price: {money(current.get('price'))}")
     print(f"Admin fee: {money(current.get('admin_fee'))}")
     print(f"Website state: {current.get('website_state')}")
+    print(f"Check status: {current.get('check_status') or 'available'}")
+    if current.get("check_error"):
+        print(f"Check error: {current.get('check_error')}")
     if initialized:
         print("Initialized price history.")
     elif changed:

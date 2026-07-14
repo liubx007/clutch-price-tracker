@@ -195,6 +195,20 @@
         line-height: 1.4;
       }
 
+      .notice {
+        border: 1px solid #f0c27a;
+        border-radius: 8px;
+        background: var(--alert-soft);
+        color: var(--alert);
+        font-size: 14px;
+        line-height: 1.45;
+        padding: 12px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
       .metrics {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -396,6 +410,8 @@
             <p class="change" id="changeText">等待最新记录</p>
           </div>
 
+          <div class="notice" id="unavailableNotice" hidden></div>
+
           <div class="metrics">
             <div class="metric">
               <p class="label">预估含税</p>
@@ -530,6 +546,9 @@
       }
 
       function priceDelta(latest, previous) {
+        if (latest?.check_status === "unavailable") {
+          return "最新检查未能读取 Clutch 车源，当前显示最后一次有效价格";
+        }
         if (!latest || !previous || typeof latest.price !== "number" || typeof previous.price !== "number") {
           return "暂无价格变化记录";
         }
@@ -545,7 +564,7 @@
             <td>${formatFullDate(item.checked_at)}</td>
             <td><strong>${formatMoney(item.price)}</strong></td>
             <td>${formatMoney(item.subtotal_before_tax)}</td>
-            <td>${item.website_state || "--"}</td>
+            <td>${item.check_status === "unavailable" ? "可能已下架 / 不可用" : (item.website_state || "--")}</td>
           </tr>
         `);
         document.getElementById("history").innerHTML = rows.join("") || '<tr><td colspan="4">暂无历史记录</td></tr>';
@@ -656,41 +675,52 @@
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const status = await response.json();
         const latest = status.latest || {};
+        const latestValid = status.latest_valid || (status.history || []).slice().reverse().find((item) => item.check_status !== "unavailable" && typeof item.price === "number") || latest;
+        const display = latest.check_status === "unavailable" ? latestValid : latest;
         const previous = status.previous || null;
         const vehicle = status.vehicle || {};
         const history = status.history || [];
 
-        const title = `${vehicle.year || latest.year || ""} ${vehicle.name || latest.name || "Clutch 车辆"}`.trim();
+        const title = `${vehicle.year || display.year || ""} ${vehicle.name || display.name || "Clutch 车辆"}`.trim();
         setText("title", title);
-        setText("subtitle", `${latest.make || vehicle.make || ""} ${latest.model || vehicle.model || ""} ${latest.trim || vehicle.trim || ""} · ${formatNumber(vehicle.mileage || latest.mileage)} km`.trim());
-        setText("price", formatMoney(latest.price));
+        setText("subtitle", `${display.make || vehicle.make || ""} ${display.model || vehicle.model || ""} ${display.trim || vehicle.trim || ""} · ${formatNumber(vehicle.mileage || display.mileage)} km`.trim());
+        setText("price", formatMoney(display.price));
         setText("changeText", priceDelta(latest, previous));
-        setText("afterTax", formatMoney(latest.estimated_after_tax));
-        setText("subtotal", formatMoney(latest.subtotal_before_tax));
-        setText("adminFee", formatMoney(latest.admin_fee));
-        setText("mileage", `${formatNumber(vehicle.mileage || latest.mileage)} km`);
-        setText("province", status.province || latest.province || "--");
+        setText("afterTax", formatMoney(display.estimated_after_tax));
+        setText("subtotal", formatMoney(display.subtotal_before_tax));
+        setText("adminFee", formatMoney(display.admin_fee));
+        setText("mileage", `${formatNumber(vehicle.mileage || display.mileage)} km`);
+        setText("province", status.province || display.province || "--");
         setText("checkedAt", formatDate(latest.checked_at));
-        setText("vehicleId", vehicle.id || latest.vehicle_id || "--");
-        setText("color", latest.exterior_color || vehicle.exterior_color || "Grey");
-        setText("drivetrain", [latest.drivetrain, latest.fuel_type].filter(Boolean).join(" / ") || "AWD / Gasoline");
-        setText("disposition", latest.current_disposition || "--");
-        setText("listingType", latest.listing_type || "--");
+        setText("vehicleId", vehicle.id || display.vehicle_id || "--");
+        setText("color", display.exterior_color || vehicle.exterior_color || "Grey");
+        setText("drivetrain", [display.drivetrain, display.fuel_type].filter(Boolean).join(" / ") || "AWD / Gasoline");
+        setText("disposition", latest.check_status === "unavailable" ? "UNAVAILABLE" : (display.current_disposition || "--"));
+        setText("listingType", latest.check_status === "unavailable" ? "可能已下架" : (display.listing_type || "--"));
         setText("historyCount", `${history.length} 条记录`);
         setText("chartSubtitle", history.length > 1 ? "最近价格检查" : "等待更多检查点");
-        setText("footerText", `最后刷新：${formatFullDate(latest.checked_at)}。数据来自 Clutch API。`);
+        setText("footerText", `最后刷新：${formatFullDate(latest.checked_at)}。历史价格保存在 GitHub 仓库中。`);
 
-        const imageUrl = vehicle.image_url || latest.image_url;
+        const notice = document.getElementById("unavailableNotice");
+        if (latest.check_status === "unavailable") {
+          notice.hidden = false;
+          notice.textContent = `最新检查无法读取 Clutch 车源，可能已下架或暂时被 Clutch 限制访问。页面保留并显示最后一次有效价格：${formatMoney(display.price)}。`;
+        } else {
+          notice.hidden = true;
+          notice.textContent = "";
+        }
+
+        const imageUrl = vehicle.image_url || display.image_url;
         const img = document.getElementById("vehiclePhoto");
         if (imageUrl) img.src = imageUrl;
         img.alt = title;
         document.getElementById("photoNote").textContent = imageUrl ? "Clutch 车辆图片" : "暂无车辆图片";
 
-        setBadge("state", latest.website_state || "--", latest.website_state !== "COMING_SOON" && latest.website_state !== "AVAILABLE");
+        setBadge("state", latest.check_status === "unavailable" ? "可能已下架" : (latest.website_state || "--"), latest.check_status === "unavailable" || (latest.website_state !== "COMING_SOON" && latest.website_state !== "AVAILABLE"));
         setBadge("visibility", latest.visible_on_site ? "页面可见" : "页面不可见", !latest.visible_on_site);
 
         const link = document.getElementById("vehicleLink");
-        link.href = vehicle.url || latest.url || link.href;
+        link.href = vehicle.url || display.url || link.href;
         renderHistory(history);
         drawChart(history.length ? history : [latest]);
       }
