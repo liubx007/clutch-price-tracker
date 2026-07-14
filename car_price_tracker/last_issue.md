@@ -8,7 +8,7 @@ The tracked Clutch vehicle was checked.
 - Current subtotal before tax: CAD $27,689
 - Website state: COMING_SOON
 - Visible on site: True
-- Checked at: 2026-07-14T17:42:28+00:00
+- Checked at: 2026-07-14T17:51:24+00:00
 
 Previous observation:
 - Price: CAD $26,790

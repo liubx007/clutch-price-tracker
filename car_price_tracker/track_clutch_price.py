@@ -16,6 +16,7 @@ from typing import Any
 
 
 API_BASE = "https://api.clutch.ca:443/v1"
+IMAGE_BASE = "https://fastly.clutch.ca"
 DEFAULT_VEHICLE_ID = "115601"
 DEFAULT_PROVINCE = "NS"
 
@@ -76,6 +77,37 @@ def pick_price(vehicle: dict[str, Any], province: str) -> dict[str, Any]:
     raise RuntimeError("Vehicle response did not include vehiclePrices.")
 
 
+def asset_url(value: Any) -> str | None:
+    if not isinstance(value, str) or not value:
+        return None
+    if value.startswith("http://") or value.startswith("https://"):
+        return value
+    return f"{IMAGE_BASE}/{value.lstrip('/')}"
+
+
+def pick_image_url(vehicle: dict[str, Any]) -> str | None:
+    for key in ("cardPhotoUrl", "cardPhoto"):
+        direct = asset_url(vehicle.get(key))
+        if direct:
+            return direct
+
+    photos = vehicle.get("photos") or {}
+    if isinstance(photos, dict):
+        for group in ("exterior", "static", "exteriorSpin", "interior", "hotspots"):
+            for item in photos.get(group) or []:
+                if isinstance(item, str):
+                    direct = asset_url(item)
+                    if direct:
+                        return direct
+                if isinstance(item, dict):
+                    for key in ("url", "photoUrl", "fullUrl", "src", "key", "path"):
+                        direct = asset_url(item.get(key))
+                        if direct:
+                            return direct
+
+    return asset_url(vehicle.get("stockImageKey"))
+
+
 def observation_from_vehicle(vehicle: dict[str, Any], province: str) -> dict[str, Any]:
     price_row = pick_price(vehicle, province)
     price = price_row.get("price")
@@ -88,12 +120,16 @@ def observation_from_vehicle(vehicle: dict[str, Any], province: str) -> dict[str
         "checked_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "vehicle_id": vehicle.get("id"),
         "url": f"https://www.clutch.ca/vehicles/{vehicle.get('id')}",
+        "image_url": pick_image_url(vehicle),
         "name": vehicle.get("name") or vehicle.get("cvcName") or vehicle.get("idWithName"),
         "year": vehicle.get("year") or vehicle.get("cvcYear"),
         "make": (vehicle.get("make") or {}).get("name") or vehicle.get("cvcMake"),
         "model": (vehicle.get("model") or {}).get("name") or vehicle.get("cvcModel"),
         "trim": (vehicle.get("trim") or {}).get("name") or vehicle.get("cvcTrim"),
         "mileage": vehicle.get("mileage"),
+        "exterior_color": (vehicle.get("exteriorColor") or {}).get("name"),
+        "drivetrain": (vehicle.get("drivetrain") or {}).get("name"),
+        "fuel_type": (vehicle.get("fuelType") or {}).get("name"),
         "province": price_row.get("provinceId"),
         "price": price,
         "admin_fee": admin_fee,
@@ -210,7 +246,11 @@ def build_public_status(
             "model": current.get("model"),
             "trim": current.get("trim"),
             "mileage": current.get("mileage"),
+            "exterior_color": current.get("exterior_color"),
+            "drivetrain": current.get("drivetrain"),
+            "fuel_type": current.get("fuel_type"),
             "url": current.get("url"),
+            "image_url": current.get("image_url"),
         },
         "province": current.get("province"),
         "latest": current,
@@ -253,12 +293,11 @@ def main() -> int:
 
     initialized = previous is None
     changed = bool(previous and comparable(previous) != comparable(current))
-    state_updated = initialized or changed
+    state_updated = True
 
-    if state_updated:
-        observations.append(current)
-        state["last_observation"] = current
-        save_state(state_path, state)
+    observations.append(current)
+    state["last_observation"] = current
+    save_state(state_path, state)
 
     issue_body_path.parent.mkdir(parents=True, exist_ok=True)
     issue_body_path.write_text(build_issue_body(current, previous), encoding="utf-8")
