@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-14T17:38:34+00:00",
+  "generated_at": "2026-07-14T17:42:28+00:00",
   "initialized": false,
   "changed": false,
   "changed_fields": [],
@@ -15,7 +15,7 @@
   },
   "province": "NS",
   "latest": {
-    "checked_at": "2026-07-14T17:38:34+00:00",
+    "checked_at": "2026-07-14T17:42:28+00:00",
     "vehicle_id": 115601,
     "url": "https://www.clutch.ca/vehicles/115601",
     "name": "Honda HR-V LX",
