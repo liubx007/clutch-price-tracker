@@ -555,12 +555,12 @@
         if (explicit === "coming_soon") return { label: "即将上架", warn: false };
         if (explicit === "unavailable") return { label: "不可用", warn: true };
 
-        if (item.visible_on_site && item.listing_type === "LISTED" && item.current_disposition === "RETAIL" && typeof item.price === "number") {
-          return { label: "可购买", warn: false };
-        }
         if (item.website_state === "SALE_PENDING") return { label: "销售处理中", warn: true };
         if (item.website_state === "AVAILABLE") return { label: "可购买", warn: false };
         if (item.website_state === "COMING_SOON") return { label: "即将上架", warn: false };
+        if (item.visible_on_site && item.listing_type === "LISTED" && item.current_disposition === "RETAIL" && typeof item.price === "number") {
+          return { label: "可购买", warn: false };
+        }
         return { label: item.website_state || "--", warn: true };
       }
 
