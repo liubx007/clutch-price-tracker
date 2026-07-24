@@ -116,6 +116,11 @@ def observation_from_vehicle(vehicle: dict[str, Any], province: str) -> dict[str
     subtotal = price + admin_fee if isinstance(price, int) and isinstance(admin_fee, int) else None
     estimated_after_tax = round(subtotal * (1 + tax_rate), 2) if subtotal and isinstance(tax_rate, (int, float)) else None
 
+    website_state = vehicle.get("websiteState")
+    listing_type = vehicle.get("type")
+    visible_on_site = vehicle.get("visibleOnSite")
+    current_disposition = vehicle.get("currentDisposition")
+
     return {
         "checked_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "vehicle_id": vehicle.get("id"),
@@ -136,13 +141,46 @@ def observation_from_vehicle(vehicle: dict[str, Any], province: str) -> dict[str
         "subtotal_before_tax": subtotal,
         "tax_rate": tax_rate,
         "estimated_after_tax": estimated_after_tax,
-        "website_state": vehicle.get("websiteState"),
-        "listing_type": vehicle.get("type"),
-        "visible_on_site": vehicle.get("visibleOnSite"),
-        "current_disposition": vehicle.get("currentDisposition"),
+        "website_state": website_state,
+        "listing_type": listing_type,
+        "visible_on_site": visible_on_site,
+        "current_disposition": current_disposition,
+        "purchase_status": infer_purchase_status(
+            website_state=website_state,
+            listing_type=listing_type,
+            visible_on_site=visible_on_site,
+            current_disposition=current_disposition,
+            price=price,
+        ),
         "check_status": "available",
         "check_error": None,
     }
+
+
+def infer_purchase_status(
+    *,
+    website_state: Any,
+    listing_type: Any,
+    visible_on_site: Any,
+    current_disposition: Any,
+    price: Any,
+) -> str:
+    if visible_on_site is False:
+        return "unavailable"
+    if website_state == "SALE_PENDING":
+        return "sale_pending"
+    if website_state == "COMING_SOON":
+        return "coming_soon"
+    if website_state == "AVAILABLE":
+        return "available"
+    if (
+        visible_on_site is True
+        and listing_type == "LISTED"
+        and current_disposition == "RETAIL"
+        and isinstance(price, int)
+    ):
+        return "available"
+    return "unknown"
 
 
 def unavailable_observation(vehicle_id: str, province: str, previous: dict[str, Any] | None, error: Exception) -> dict[str, Any]:
@@ -157,6 +195,7 @@ def unavailable_observation(vehicle_id: str, province: str, previous: dict[str, 
             "website_state": "UNAVAILABLE",
             "visible_on_site": False,
             "current_disposition": "UNAVAILABLE",
+            "purchase_status": "unavailable",
             "check_status": "unavailable",
             "check_error": str(error),
         }
@@ -185,6 +224,7 @@ def comparable(observation: dict[str, Any]) -> dict[str, Any]:
         "listing_type",
         "visible_on_site",
         "current_disposition",
+        "purchase_status",
         "check_status",
     ]
     return {key: observation.get(key) for key in keys}
@@ -217,6 +257,7 @@ def build_issue_body(current: dict[str, Any], previous: dict[str, Any] | None) -
         f"- Current admin fee: {money(current.get('admin_fee'))}",
         f"- Current subtotal before tax: {money(current.get('subtotal_before_tax'))}",
         f"- Website state: {current.get('website_state')}",
+        f"- Purchase status: {current.get('purchase_status')}",
         f"- Visible on site: {current.get('visible_on_site')}",
         f"- Check status: {current.get('check_status') or 'available'}",
         f"- Checked at: {current.get('checked_at')}",
@@ -232,6 +273,7 @@ def build_issue_body(current: dict[str, Any], previous: dict[str, Any] | None) -
                 f"- Admin fee: {money(previous.get('admin_fee'))}",
                 f"- Subtotal before tax: {money(previous.get('subtotal_before_tax'))}",
                 f"- Website state: {previous.get('website_state')}",
+                f"- Purchase status: {previous.get('purchase_status')}",
                 f"- Visible on site: {previous.get('visible_on_site')}",
                 f"- Checked at: {previous.get('checked_at')}",
             ]
@@ -357,6 +399,7 @@ def main() -> int:
     print(f"Price: {money(current.get('price'))}")
     print(f"Admin fee: {money(current.get('admin_fee'))}")
     print(f"Website state: {current.get('website_state')}")
+    print(f"Purchase status: {current.get('purchase_status')}")
     print(f"Check status: {current.get('check_status') or 'available'}")
     if current.get("check_error"):
         print(f"Check error: {current.get('check_error')}")
@@ -378,6 +421,7 @@ def main() -> int:
             "price": current.get("price"),
             "admin_fee": current.get("admin_fee"),
             "website_state": current.get("website_state"),
+            "purchase_status": current.get("purchase_status"),
             "previous_price": previous.get("price") if previous else "",
             "public_status_updated": str(bool(args.public_status_file)).lower(),
         }

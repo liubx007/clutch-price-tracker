@@ -545,6 +545,25 @@
         el.classList.toggle("warn", Boolean(warn));
       }
 
+      function purchaseStatus(item) {
+        if (!item) return { label: "--", warn: true };
+        if (item.check_status === "unavailable") return { label: "可能已下架", warn: true };
+
+        const explicit = item.purchase_status;
+        if (explicit === "available") return { label: "可购买", warn: false };
+        if (explicit === "sale_pending") return { label: "销售处理中", warn: true };
+        if (explicit === "coming_soon") return { label: "即将上架", warn: false };
+        if (explicit === "unavailable") return { label: "不可用", warn: true };
+
+        if (item.visible_on_site && item.listing_type === "LISTED" && item.current_disposition === "RETAIL" && typeof item.price === "number") {
+          return { label: "可购买", warn: false };
+        }
+        if (item.website_state === "SALE_PENDING") return { label: "销售处理中", warn: true };
+        if (item.website_state === "AVAILABLE") return { label: "可购买", warn: false };
+        if (item.website_state === "COMING_SOON") return { label: "即将上架", warn: false };
+        return { label: item.website_state || "--", warn: true };
+      }
+
       function priceDelta(latest, previous) {
         if (latest?.check_status === "unavailable") {
           return "最新检查未能读取 Clutch 车源，当前显示最后一次有效价格";
@@ -564,7 +583,7 @@
             <td>${formatFullDate(item.checked_at)}</td>
             <td><strong>${formatMoney(item.price)}</strong></td>
             <td>${formatMoney(item.subtotal_before_tax)}</td>
-            <td>${item.check_status === "unavailable" ? "可能已下架 / 不可用" : (item.website_state || "--")}</td>
+            <td>${purchaseStatus(item).label}</td>
           </tr>
         `);
         document.getElementById("history").innerHTML = rows.join("") || '<tr><td colspan="4">暂无历史记录</td></tr>';
@@ -696,7 +715,7 @@
         setText("color", display.exterior_color || vehicle.exterior_color || "Grey");
         setText("drivetrain", [display.drivetrain, display.fuel_type].filter(Boolean).join(" / ") || "AWD / Gasoline");
         setText("disposition", latest.check_status === "unavailable" ? "UNAVAILABLE" : (display.current_disposition || "--"));
-        setText("listingType", latest.check_status === "unavailable" ? "可能已下架" : (display.listing_type || "--"));
+        setText("listingType", latest.check_status === "unavailable" ? "可能已下架" : [display.listing_type, display.website_state].filter(Boolean).join(" / ") || "--");
         setText("historyCount", `${history.length} 条记录`);
         setText("chartSubtitle", history.length > 1 ? "最近价格检查" : "等待更多检查点");
         setText("footerText", `最后刷新：${formatFullDate(latest.checked_at)}。历史价格保存在 GitHub 仓库中。`);
@@ -716,7 +735,8 @@
         img.alt = title;
         document.getElementById("photoNote").textContent = imageUrl ? "Clutch 车辆图片" : "暂无车辆图片";
 
-        setBadge("state", latest.check_status === "unavailable" ? "可能已下架" : (latest.website_state || "--"), latest.check_status === "unavailable" || (latest.website_state !== "COMING_SOON" && latest.website_state !== "AVAILABLE"));
+        const saleState = purchaseStatus(latest);
+        setBadge("state", saleState.label, saleState.warn);
         setBadge("visibility", latest.visible_on_site ? "页面可见" : "页面不可见", !latest.visible_on_site);
 
         const link = document.getElementById("vehicleLink");
