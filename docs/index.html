@@ -268,12 +268,35 @@
       .chart-wrap {
         height: 270px;
         padding: 8px 12px 14px;
+        position: relative;
       }
 
       canvas {
         display: block;
         width: 100%;
         height: 100%;
+      }
+
+      .chart-tooltip {
+        position: absolute;
+        min-width: 132px;
+        padding: 8px 10px;
+        border: 1px solid rgba(15, 23, 42, 0.12);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: var(--shadow);
+        color: var(--text);
+        font-size: 12px;
+        line-height: 1.35;
+        pointer-events: none;
+        transform: translate(-50%, -100%);
+        z-index: 3;
+      }
+
+      .chart-tooltip strong {
+        display: block;
+        margin-bottom: 2px;
+        font-size: 14px;
       }
 
       table {
@@ -449,6 +472,7 @@
           </div>
           <div class="chart-wrap">
             <canvas id="priceChart" width="900" height="360"></canvas>
+            <div class="chart-tooltip" id="chartTooltip" hidden></div>
           </div>
         </div>
 
@@ -589,6 +613,8 @@
         document.getElementById("history").innerHTML = rows.join("") || '<tr><td colspan="4">暂无历史记录</td></tr>';
       }
 
+      let chartState = null;
+
       function drawChart(items) {
         const canvas = document.getElementById("priceChart");
         const ctx = canvas.getContext("2d");
@@ -605,6 +631,7 @@
 
         const points = items.filter((item) => typeof item.price === "number");
         if (!points.length) {
+          chartState = null;
           ctx.fillStyle = "#67717f";
           ctx.font = "14px system-ui";
           ctx.fillText("暂无价格数据", pad.left, height / 2);
@@ -622,6 +649,11 @@
         const plotH = height - pad.top - pad.bottom;
         const xFor = (index) => pad.left + (points.length === 1 ? plotW / 2 : (index / (points.length - 1)) * plotW);
         const yFor = (value) => pad.top + (1 - (value - min) / (max - min)) * plotH;
+        const positions = points.map((item, index) => ({
+          item,
+          x: xFor(index),
+          y: yFor(item.price)
+        }));
 
         ctx.strokeStyle = "#dce2e8";
         ctx.lineWidth = 1;
@@ -668,9 +700,7 @@
         });
         ctx.stroke();
 
-        points.forEach((item, index) => {
-          const x = xFor(index);
-          const y = yFor(item.price);
+        positions.forEach(({ x, y }) => {
           ctx.fillStyle = "#ffffff";
           ctx.strokeStyle = "#0a6f5a";
           ctx.lineWidth = 2;
@@ -687,6 +717,43 @@
         const last = points[points.length - 1];
         ctx.fillText(formatDate(first.checked_at), xFor(0), height - pad.bottom + 16);
         ctx.fillText(formatDate(last.checked_at), xFor(points.length - 1), height - pad.bottom + 16);
+        chartState = { points: positions, pad, width, height, items };
+      }
+
+      function showChartTooltip(event) {
+        if (!chartState?.points?.length) return;
+        const canvas = document.getElementById("priceChart");
+        const tooltip = document.getElementById("chartTooltip");
+        const rect = canvas.getBoundingClientRect();
+        const clientX = event.touches?.[0]?.clientX ?? event.clientX;
+        const localX = clientX - rect.left;
+        const nearest = chartState.points.reduce((best, point) => (
+          Math.abs(point.x - localX) < Math.abs(best.x - localX) ? point : best
+        ));
+
+        drawChart(chartState.items);
+        const ctx = canvas.getContext("2d");
+        ctx.strokeStyle = "rgba(15, 23, 42, 0.25)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(nearest.x, chartState.pad.top);
+        ctx.lineTo(nearest.x, chartState.height - chartState.pad.bottom);
+        ctx.stroke();
+
+        ctx.fillStyle = "#0a6f5a";
+        ctx.beginPath();
+        ctx.arc(nearest.x, nearest.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        tooltip.hidden = false;
+        tooltip.innerHTML = `<strong>${formatMoney(nearest.item.price)}</strong><span>${formatFullDate(nearest.item.checked_at)}</span>`;
+        tooltip.style.left = `${Math.min(Math.max(nearest.x, 76), rect.width - 76)}px`;
+        tooltip.style.top = `${Math.max(nearest.y - 10, 42)}px`;
+      }
+
+      function hideChartTooltip() {
+        document.getElementById("chartTooltip").hidden = true;
+        if (chartState?.items) drawChart(chartState.items);
       }
 
       async function loadStatus() {
@@ -699,6 +766,7 @@
         const previous = status.previous || null;
         const vehicle = status.vehicle || {};
         const history = status.history || [];
+        const chartHistory = status.chart_history || history.slice(-20);
 
         const title = `${vehicle.year || display.year || ""} ${vehicle.name || display.name || "Clutch 车辆"}`.trim();
         setText("title", title);
@@ -717,7 +785,7 @@
         setText("disposition", latest.check_status === "unavailable" ? "UNAVAILABLE" : (display.current_disposition || "--"));
         setText("listingType", latest.check_status === "unavailable" ? "可能已下架" : [display.listing_type, display.website_state].filter(Boolean).join(" / ") || "--");
         setText("historyCount", `${history.length} 条记录`);
-        setText("chartSubtitle", history.length > 1 ? "最近价格检查" : "等待更多检查点");
+        setText("chartSubtitle", chartHistory.length > 1 ? "最近价格检查" : "等待更多检查点");
         setText("footerText", `最后刷新：${formatFullDate(latest.checked_at)}。历史价格保存在 GitHub 仓库中。`);
 
         const notice = document.getElementById("unavailableNotice");
@@ -742,7 +810,7 @@
         const link = document.getElementById("vehicleLink");
         link.href = vehicle.url || display.url || link.href;
         renderHistory(history);
-        drawChart(history.length ? history : [latest]);
+        drawChart(chartHistory.length ? chartHistory : [latest]);
       }
 
       loadStatus().catch((error) => {
@@ -754,9 +822,16 @@
       window.addEventListener("resize", () => {
         fetch(`status.json?cache=${Date.now()}`)
           .then((response) => response.json())
-          .then((status) => drawChart(status.history || []))
+          .then((status) => drawChart(status.chart_history || (status.history || []).slice(-20)))
           .catch(() => {});
       });
+
+      const chartCanvas = document.getElementById("priceChart");
+      chartCanvas.addEventListener("mousemove", showChartTooltip);
+      chartCanvas.addEventListener("mouseleave", hideChartTooltip);
+      chartCanvas.addEventListener("touchstart", showChartTooltip, { passive: true });
+      chartCanvas.addEventListener("touchmove", showChartTooltip, { passive: true });
+      chartCanvas.addEventListener("touchend", hideChartTooltip);
     </script>
   </body>
 </html>

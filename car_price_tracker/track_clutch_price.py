@@ -289,7 +289,8 @@ def build_public_status(
     changed: bool,
 ) -> dict[str, Any]:
     observations = state.get("observations") or []
-    history = observations[-20:]
+    history = observations
+    chart_history = observations[-20:]
     previous_comparable = comparable(previous) if previous else None
     current_comparable = comparable(current)
     changed_fields = []
@@ -331,6 +332,7 @@ def build_public_status(
             None,
         ),
         "history": history,
+        "chart_history": chart_history,
     }
 
 
