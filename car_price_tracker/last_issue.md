@@ -10,7 +10,7 @@ The tracked Clutch vehicle was checked.
 - Purchase status: available
 - Visible on site: True
 - Check status: available
-- Checked at: 2026-08-01T03:51:52+00:00
+- Checked at: 2026-08-01T08:34:44+00:00
 
 Previous observation:
 - Price: CAD $26,590
@@ -19,4 +19,4 @@ Previous observation:
 - Website state: None
 - Purchase status: available
 - Visible on site: True
-- Checked at: 2026-07-31T19:53:43+00:00
+- Checked at: 2026-08-01T03:51:52+00:00
