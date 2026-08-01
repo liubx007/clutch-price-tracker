@@ -3,14 +3,14 @@ The tracked Clutch vehicle was checked.
 - Vehicle: Honda HR-V LX
 - URL: https://www.clutch.ca/vehicles/115601
 - Province: NS
-- Current price: CAD $26,590
+- Current price: CAD $26,390
 - Current admin fee: CAD $899
-- Current subtotal before tax: CAD $27,489
+- Current subtotal before tax: CAD $27,289
 - Website state: None
 - Purchase status: available
 - Visible on site: True
 - Check status: available
-- Checked at: 2026-08-01T08:34:44+00:00
+- Checked at: 2026-08-01T13:56:33+00:00
 
 Previous observation:
 - Price: CAD $26,590
@@ -19,4 +19,4 @@ Previous observation:
 - Website state: None
 - Purchase status: available
 - Visible on site: True
-- Checked at: 2026-08-01T03:51:52+00:00
+- Checked at: 2026-08-01T08:34:44+00:00
