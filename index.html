@@ -238,6 +238,10 @@
         margin-top: 16px;
       }
 
+      .chart-panel {
+        grid-column: 1 / -1;
+      }
+
       .panel {
         background: var(--panel);
         border: 1px solid var(--line);
@@ -265,8 +269,32 @@
         font-size: 13px;
       }
 
+      .chart-scroll {
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        padding: 2px 0 8px;
+      }
+
+      .chart-scroll::-webkit-scrollbar {
+        height: 10px;
+      }
+
+      .chart-scroll::-webkit-scrollbar-track {
+        background: #edf1f4;
+        border-radius: 999px;
+      }
+
+      .chart-scroll::-webkit-scrollbar-thumb {
+        background: #aeb8c2;
+        border: 2px solid #edf1f4;
+        border-radius: 999px;
+      }
+
       .chart-wrap {
-        height: 270px;
+        height: 318px;
+        min-width: 880px;
         padding: 8px 12px 14px;
         position: relative;
       }
@@ -362,11 +390,6 @@
           grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
-        .grid {
-          grid-template-columns: 1.1fr 0.9fr;
-          align-items: start;
-        }
-
         .history-panel {
           grid-column: 1 / -1;
         }
@@ -460,43 +483,28 @@
               <p class="label">最近检查</p>
               <p class="metric-value" id="checkedAt">--</p>
             </div>
+            <div class="metric">
+              <p class="label">页面状态</p>
+              <p class="metric-value" id="disposition">--</p>
+            </div>
+            <div class="metric">
+              <p class="label">车源编号</p>
+              <p class="metric-value" id="vehicleId">--</p>
+            </div>
           </div>
         </div>
       </section>
 
       <section class="grid">
-        <div class="panel">
+        <div class="panel chart-panel">
           <div class="panel-head">
             <h2>价格趋势</h2>
             <span class="panel-subtitle" id="chartSubtitle">--</span>
           </div>
-          <div class="chart-wrap">
-            <canvas id="priceChart" width="900" height="360"></canvas>
-            <div class="chart-tooltip" id="chartTooltip" hidden></div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head">
-            <h2>车辆信息</h2>
-            <span class="panel-subtitle" id="listingType">--</span>
-          </div>
-          <div class="metrics">
-            <div class="metric">
-              <p class="label">车源编号</p>
-              <p class="metric-value" id="vehicleId">--</p>
-            </div>
-            <div class="metric">
-              <p class="label">外观颜色</p>
-              <p class="metric-value" id="color">--</p>
-            </div>
-            <div class="metric">
-              <p class="label">驱动 / 燃油</p>
-              <p class="metric-value" id="drivetrain">--</p>
-            </div>
-            <div class="metric">
-              <p class="label">页面状态</p>
-              <p class="metric-value" id="disposition">--</p>
+          <div class="chart-scroll" id="chartScroll">
+            <div class="chart-wrap" id="chartWrap">
+              <canvas id="priceChart" width="1400" height="360"></canvas>
+              <div class="chart-tooltip" id="chartTooltip" hidden></div>
             </div>
           </div>
         </div>
@@ -616,7 +624,16 @@
       let chartState = null;
 
       function drawChart(items) {
+        const sourceItems = Array.isArray(items) ? items : [];
+        const points = sourceItems.filter((item) => typeof item.price === "number");
         const canvas = document.getElementById("priceChart");
+        const wrap = document.getElementById("chartWrap");
+        const scroll = document.getElementById("chartScroll");
+        if (wrap && scroll) {
+          const pointWidth = window.innerWidth < 620 ? 58 : 46;
+          const targetWidth = Math.max(scroll.clientWidth || 640, Math.min(5600, points.length * pointWidth + 180));
+          wrap.style.width = `${targetWidth}px`;
+        }
         const ctx = canvas.getContext("2d");
         const rect = canvas.getBoundingClientRect();
         const ratio = window.devicePixelRatio || 1;
@@ -629,7 +646,6 @@
         const pad = { top: 24, right: 18, bottom: 42, left: 70 };
         ctx.clearRect(0, 0, width, height);
 
-        const points = items.filter((item) => typeof item.price === "number");
         if (!points.length) {
           chartState = null;
           ctx.fillStyle = "#67717f";
@@ -713,11 +729,18 @@
         ctx.fillStyle = "#67717f";
         ctx.textAlign = "center";
         ctx.textBaseline = "top";
-        const first = points[0];
-        const last = points[points.length - 1];
-        ctx.fillText(formatDate(first.checked_at), xFor(0), height - pad.bottom + 16);
-        ctx.fillText(formatDate(last.checked_at), xFor(points.length - 1), height - pad.bottom + 16);
-        chartState = { points: positions, pad, width, height, items };
+        const labelEvery = Math.max(1, Math.ceil(points.length / 8));
+        points.forEach((item, index) => {
+          if (index === 0 || index === points.length - 1 || index % labelEvery === 0) {
+            ctx.fillText(formatDate(item.checked_at), xFor(index), height - pad.bottom + 16);
+          }
+        });
+        chartState = { points: positions, pad, width, height, items: sourceItems };
+      }
+
+      function scrollChartToLatest() {
+        const scroll = document.getElementById("chartScroll");
+        if (scroll) scroll.scrollLeft = scroll.scrollWidth;
       }
 
       function showChartTooltip(event) {
@@ -747,7 +770,7 @@
 
         tooltip.hidden = false;
         tooltip.innerHTML = `<strong>${formatMoney(nearest.item.price)}</strong><span>${formatFullDate(nearest.item.checked_at)}</span>`;
-        tooltip.style.left = `${Math.min(Math.max(nearest.x, 76), rect.width - 76)}px`;
+        tooltip.style.left = `${Math.min(Math.max(nearest.x, 76), chartState.width - 76)}px`;
         tooltip.style.top = `${Math.max(nearest.y - 10, 42)}px`;
       }
 
@@ -766,7 +789,7 @@
         const previous = status.previous || null;
         const vehicle = status.vehicle || {};
         const history = status.history || [];
-        const chartHistory = status.chart_history || history.slice(-20);
+        const chartHistory = status.chart_history || history.slice(-90);
 
         const title = `${vehicle.year || display.year || ""} ${vehicle.name || display.name || "Clutch 车辆"}`.trim();
         setText("title", title);
@@ -780,12 +803,9 @@
         setText("province", status.province || display.province || "--");
         setText("checkedAt", formatDate(latest.checked_at));
         setText("vehicleId", vehicle.id || display.vehicle_id || "--");
-        setText("color", display.exterior_color || vehicle.exterior_color || "Grey");
-        setText("drivetrain", [display.drivetrain, display.fuel_type].filter(Boolean).join(" / ") || "AWD / Gasoline");
-        setText("disposition", latest.check_status === "unavailable" ? "UNAVAILABLE" : (display.current_disposition || "--"));
-        setText("listingType", latest.check_status === "unavailable" ? "可能已下架" : [display.listing_type, display.website_state].filter(Boolean).join(" / ") || "--");
+        setText("disposition", latest.check_status === "unavailable" ? "UNAVAILABLE" : [display.website_state, display.current_disposition].filter(Boolean).join(" / ") || "--");
         setText("historyCount", `${history.length} 条记录`);
-        setText("chartSubtitle", chartHistory.length > 1 ? "最近价格检查" : "等待更多检查点");
+        setText("chartSubtitle", chartHistory.length > 1 ? `最近 ${chartHistory.length} 次价格检查` : "等待更多检查点");
         setText("footerText", `最后刷新：${formatFullDate(latest.checked_at)}。历史价格保存在 GitHub 仓库中。`);
 
         const notice = document.getElementById("unavailableNotice");
@@ -811,6 +831,7 @@
         link.href = vehicle.url || display.url || link.href;
         renderHistory(history);
         drawChart(chartHistory.length ? chartHistory : [latest]);
+        scrollChartToLatest();
       }
 
       loadStatus().catch((error) => {
@@ -822,7 +843,7 @@
       window.addEventListener("resize", () => {
         fetch(`status.json?cache=${Date.now()}`)
           .then((response) => response.json())
-          .then((status) => drawChart(status.chart_history || (status.history || []).slice(-20)))
+          .then((status) => drawChart(status.chart_history || (status.history || []).slice(-90)))
           .catch(() => {});
       });
 

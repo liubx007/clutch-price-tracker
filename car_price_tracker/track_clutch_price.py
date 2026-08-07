@@ -19,6 +19,7 @@ API_BASE = "https://api.clutch.ca:443/v1"
 IMAGE_BASE = "https://fastly.clutch.ca"
 DEFAULT_VEHICLE_ID = "115601"
 DEFAULT_PROVINCE = "NS"
+CHART_HISTORY_LIMIT = 90
 
 
 def fetch_vehicle(vehicle_id: str, retries: int, retry_delay: int) -> dict[str, Any]:
@@ -290,7 +291,7 @@ def build_public_status(
 ) -> dict[str, Any]:
     observations = state.get("observations") or []
     history = observations
-    chart_history = observations[-20:]
+    chart_history = observations[-CHART_HISTORY_LIMIT:]
     previous_comparable = comparable(previous) if previous else None
     current_comparable = comparable(current)
     changed_fields = []
