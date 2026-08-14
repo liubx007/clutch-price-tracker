@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from car_price_tracker.collect_to_supabase import extract_vehicle_ids
+from car_price_tracker.collect_to_supabase import extract_vehicle_ids, normalize_rows_for_postgrest
 
 
 class CollectHelperTests(unittest.TestCase):
@@ -17,6 +17,17 @@ class CollectHelperTests(unittest.TestCase):
             }
         }
         self.assertEqual(extract_vehicle_ids(payload), [123, 456])
+
+    def test_normalize_rows_for_postgrest_adds_missing_keys(self) -> None:
+        rows = normalize_rows_for_postgrest([
+            {"id": "honda-hr-v", "notes": "seed"},
+            {"id": "toyota-rav4"},
+        ])
+
+        self.assertEqual(rows, [
+            {"id": "honda-hr-v", "notes": "seed"},
+            {"id": "toyota-rav4", "notes": None},
+        ])
 
 
 if __name__ == "__main__":

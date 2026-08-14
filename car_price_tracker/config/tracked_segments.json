@@ -1,5 +1,12 @@
 [
   {
+    "id": "honda-hr-v",
+    "make": "Honda",
+    "model": "HR-V",
+    "priority": 11,
+    "notes": "Seeded from the two manually tracked Clutch HR-V listings."
+  },
+  {
     "id": "ford-f-150",
     "make": "Ford",
     "model": "F-150",

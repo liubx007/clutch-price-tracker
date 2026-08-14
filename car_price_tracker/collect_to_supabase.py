@@ -53,10 +53,15 @@ class SupabaseRest:
             headers["Content-Type"] = "application/json"
         if prefer:
             headers["Prefer"] = prefer
-        request = urllib.request.Request(f"{self.url}/rest/v1/{path}{qs}", data=payload, headers=headers, method=method)
-        with urllib.request.urlopen(request, timeout=30) as response:
-            text = response.read().decode("utf-8", errors="replace")
-            return json.loads(text) if text.strip() else None
+        url = f"{self.url}/rest/v1/{path}{qs}"
+        request = urllib.request.Request(url, data=payload, headers=headers, method=method)
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                text = response.read().decode("utf-8", errors="replace")
+                return json.loads(text) if text.strip() else None
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"Supabase REST {method} {path} failed with HTTP {exc.code}: {body[:1000]}") from exc
 
     def upsert(self, table: str, rows: list[dict[str, Any]], *, conflict: str) -> Any:
         if not rows:
@@ -64,7 +69,7 @@ class SupabaseRest:
         return self.request(
             "POST",
             table,
-            body=rows,
+            body=normalize_rows_for_postgrest(rows),
             query={"on_conflict": conflict},
             prefer="resolution=merge-duplicates,return=representation",
         )
@@ -72,7 +77,7 @@ class SupabaseRest:
     def insert(self, table: str, rows: list[dict[str, Any]]) -> Any:
         if not rows:
             return None
-        return self.request("POST", table, body=rows, prefer="return=minimal")
+        return self.request("POST", table, body=normalize_rows_for_postgrest(rows), prefer="return=minimal")
 
     def get_recent_observations(self, vehicle_id: int, *, limit: int = 200) -> list[dict[str, Any]]:
         rows = self.request(
@@ -90,6 +95,12 @@ class SupabaseRest:
 
 def load_json(path: str | Path) -> Any:
     return json.loads(Path(path).read_text(encoding="utf-8"))
+
+
+def normalize_rows_for_postgrest(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """PostgREST bulk inserts require every object in the JSON array to share keys."""
+    keys = sorted({key for row in rows for key in row})
+    return [{key: row.get(key) for key in keys} for row in rows]
 
 
 def extract_vehicle_ids(payload: Any) -> list[int]:
