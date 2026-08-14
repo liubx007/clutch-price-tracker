@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T07:52:05+00:00",
+  "generated_at": "2026-08-14T13:45:05+00:00",
   "initialized": false,
   "changed": false,
   "changed_fields": [],
@@ -19,7 +19,7 @@
   },
   "province": "NS",
   "latest": {
-    "checked_at": "2026-08-14T07:52:05+00:00",
+    "checked_at": "2026-08-14T13:45:05+00:00",
     "vehicle_id": 115601,
     "url": "https://www.clutch.ca/vehicles/115601",
     "image_url": "https://fastly.clutch.ca/f51534df-55a0-4953-9020-4a90578f9e85.jpg?class=card_photo",
@@ -47,7 +47,7 @@
     "check_error": null
   },
   "previous": {
-    "checked_at": "2026-08-14T02:47:04+00:00",
+    "checked_at": "2026-08-14T07:52:05+00:00",
     "vehicle_id": 115601,
     "url": "https://www.clutch.ca/vehicles/115601",
     "image_url": "https://fastly.clutch.ca/f51534df-55a0-4953-9020-4a90578f9e85.jpg?class=card_photo",
@@ -75,7 +75,7 @@
     "check_error": null
   },
   "latest_valid": {
-    "checked_at": "2026-08-14T07:52:05+00:00",
+    "checked_at": "2026-08-14T13:45:05+00:00",
     "vehicle_id": 115601,
     "url": "https://www.clutch.ca/vehicles/115601",
     "image_url": "https://fastly.clutch.ca/f51534df-55a0-4953-9020-4a90578f9e85.jpg?class=card_photo",
@@ -3853,11 +3853,9 @@
       "purchase_status": "available",
       "check_status": "available",
       "check_error": null
-    }
-  ],
-  "chart_history": [
+    },
     {
-      "checked_at": "2026-07-24T19:10:34+00:00",
+      "checked_at": "2026-08-14T13:45:05+00:00",
       "vehicle_id": 115601,
       "url": "https://www.clutch.ca/vehicles/115601",
       "image_url": "https://fastly.clutch.ca/f51534df-55a0-4953-9020-4a90578f9e85.jpg?class=card_photo",
@@ -3871,11 +3869,11 @@
       "drivetrain": "AWD",
       "fuel_type": "Gasoline",
       "province": "NS",
-      "price": 26790,
+      "price": 26190,
       "admin_fee": 899,
-      "subtotal_before_tax": 27689,
+      "subtotal_before_tax": 27089,
       "tax_rate": 0.15,
-      "estimated_after_tax": 31842.35,
+      "estimated_after_tax": 31152.35,
       "website_state": null,
       "listing_type": "LISTED",
       "visible_on_site": true,
@@ -3883,7 +3881,9 @@
       "purchase_status": "available",
       "check_status": "available",
       "check_error": null
-    },
+    }
+  ],
+  "chart_history": [
     {
       "checked_at": "2026-07-24T19:14:24+00:00",
       "vehicle_id": 115601,
@@ -6350,6 +6350,34 @@
     },
     {
       "checked_at": "2026-08-14T07:52:05+00:00",
+      "vehicle_id": 115601,
+      "url": "https://www.clutch.ca/vehicles/115601",
+      "image_url": "https://fastly.clutch.ca/f51534df-55a0-4953-9020-4a90578f9e85.jpg?class=card_photo",
+      "name": "Honda HR-V LX",
+      "year": 2023,
+      "make": "Honda",
+      "model": "HR-V",
+      "trim": "LX",
+      "mileage": 39531,
+      "exterior_color": "Grey",
+      "drivetrain": "AWD",
+      "fuel_type": "Gasoline",
+      "province": "NS",
+      "price": 26190,
+      "admin_fee": 899,
+      "subtotal_before_tax": 27089,
+      "tax_rate": 0.15,
+      "estimated_after_tax": 31152.35,
+      "website_state": null,
+      "listing_type": "LISTED",
+      "visible_on_site": true,
+      "current_disposition": "RETAIL",
+      "purchase_status": "available",
+      "check_status": "available",
+      "check_error": null
+    },
+    {
+      "checked_at": "2026-08-14T13:45:05+00:00",
       "vehicle_id": 115601,
       "url": "https://www.clutch.ca/vehicles/115601",
       "image_url": "https://fastly.clutch.ca/f51534df-55a0-4953-9020-4a90578f9e85.jpg?class=card_photo",
