@@ -1,0 +1,12 @@
+[
+  {
+    "vehicle_id": 115601,
+    "segment_id": "honda-hr-v",
+    "notes": "Existing tracked HR-V baseline."
+  },
+  {
+    "vehicle_id": 107537,
+    "segment_id": "honda-hr-v",
+    "notes": "Existing tracked white HR-V baseline."
+  }
+]

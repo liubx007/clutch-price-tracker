@@ -1,0 +1,102 @@
+[
+  {
+    "id": "ford-f-150",
+    "make": "Ford",
+    "model": "F-150",
+    "priority": 10,
+    "notes": "Ford F-Series is Canada's top-selling vehicle line."
+  },
+  {
+    "id": "toyota-rav4",
+    "make": "Toyota",
+    "model": "RAV4",
+    "priority": 10,
+    "notes": "RAV4 is one of Canada's highest-volume non-pickup models."
+  },
+  {
+    "id": "honda-cr-v",
+    "make": "Honda",
+    "model": "CR-V",
+    "priority": 9
+  },
+  {
+    "id": "gmc-sierra",
+    "make": "GMC",
+    "model": "Sierra",
+    "priority": 9
+  },
+  {
+    "id": "chevrolet-silverado",
+    "make": "Chevrolet",
+    "model": "Silverado",
+    "priority": 9
+  },
+  {
+    "id": "ram-1500",
+    "make": "Ram",
+    "model": "1500",
+    "priority": 8
+  },
+  {
+    "id": "hyundai-tucson",
+    "make": "Hyundai",
+    "model": "Tucson",
+    "priority": 8
+  },
+  {
+    "id": "nissan-rogue",
+    "make": "Nissan",
+    "model": "Rogue",
+    "priority": 8
+  },
+  {
+    "id": "ford-escape",
+    "make": "Ford",
+    "model": "Escape",
+    "priority": 7
+  },
+  {
+    "id": "subaru-crosstrek",
+    "make": "Subaru",
+    "model": "Crosstrek",
+    "priority": 7
+  },
+  {
+    "id": "honda-civic",
+    "make": "Honda",
+    "model": "Civic",
+    "priority": 7
+  },
+  {
+    "id": "toyota-corolla",
+    "make": "Toyota",
+    "model": "Corolla",
+    "priority": 6
+  },
+  {
+    "id": "mazda-cx-5",
+    "make": "Mazda",
+    "model": "CX-5",
+    "priority": 6
+  },
+  {
+    "id": "mazda-mazda3",
+    "make": "Mazda",
+    "model": "Mazda3",
+    "priority": 6
+  },
+  {
+    "id": "tesla-model-y",
+    "make": "Tesla",
+    "model": "Model Y",
+    "priority": 10,
+    "notes": "Included explicitly for EV demand and resale-price monitoring."
+  },
+  {
+    "id": "tesla-model-3",
+    "make": "Tesla",
+    "model": "Model 3",
+    "priority": 9,
+    "notes": "Included explicitly for EV demand and resale-price monitoring."
+  }
+]

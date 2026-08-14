@@ -1,0 +1,41 @@
+name: Clutch Supabase collector
+
+on:
+  schedule:
+    - cron: "11 5,17 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: clutch-supabase-collector
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Collect tracked Clutch vehicles
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CLUTCH_PROVINCE: NS
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing. Configure repository secrets to enable collection."
+            exit 0
+          fi
+
+          python car_price_tracker/collect_to_supabase.py \
+            --discover \
+            --include-seed-vehicles \
+            --max-per-segment 20 \
+            --max-vehicles 250 \
+            --request-delay 2

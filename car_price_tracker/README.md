@@ -24,3 +24,23 @@ Cloud monitoring:
 The history files are `car_price_tracker/history/vehicle_115601.json` and `car_price_tracker/history/vehicle_107537.json`.
 
 Clutch may return temporary `202` or `403` responses if checked repeatedly in a short window. The script retries by default, and the scheduled workflow checks every 6 hours to keep the traffic gentle.
+
+## Product Collector
+
+`collect_to_supabase.py` is the product-oriented collector. It stores vehicle snapshots, price observations, and rule-based Wait/Buy prediction snapshots in Supabase.
+
+Dry run:
+
+```powershell
+python car_price_tracker\collect_to_supabase.py --dry-run --vehicle-id 115601
+```
+
+Supabase write:
+
+```powershell
+$env:SUPABASE_URL="https://your-project.supabase.co"
+$env:SUPABASE_SERVICE_ROLE_KEY="..."
+python car_price_tracker\collect_to_supabase.py --vehicle-id 115601
+```
+
+Seed segments live in `car_price_tracker/config/tracked_segments.json`.
