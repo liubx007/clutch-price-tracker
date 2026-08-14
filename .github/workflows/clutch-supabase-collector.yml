@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Collect tracked Clutch vehicles
+      - name: Validate Supabase secrets
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -33,9 +33,30 @@ jobs:
             exit 0
           fi
 
+      - name: Collect seed Clutch vehicles
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CLUTCH_PROVINCE: NS
+        run: |
+          python car_price_tracker/collect_to_supabase.py \
+            --max-vehicles 20 \
+            --request-delay 3 \
+            --retries 5 \
+            --retry-delay 20
+
+      - name: Discover broader Clutch inventory
+        continue-on-error: true
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CLUTCH_PROVINCE: NS
+        run: |
           python car_price_tracker/collect_to_supabase.py \
             --discover \
-            --include-seed-vehicles \
-            --max-per-segment 20 \
-            --max-vehicles 250 \
-            --request-delay 2
+            --skip-seed-vehicles \
+            --max-per-segment 5 \
+            --max-vehicles 80 \
+            --request-delay 5 \
+            --retries 5 \
+            --retry-delay 20

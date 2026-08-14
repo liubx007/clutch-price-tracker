@@ -256,6 +256,7 @@ def main() -> int:
     parser.add_argument("--vehicle-id", action="append", type=int, default=[])
     parser.add_argument("--discover", action="store_true", help="Discover vehicle ids from configured make/model segments.")
     parser.add_argument("--include-seed-vehicles", action="store_true", default=True)
+    parser.add_argument("--skip-seed-vehicles", action="store_true", help="Do not include configured seed vehicle ids.")
     parser.add_argument("--max-per-segment", type=int, default=20)
     parser.add_argument("--max-vehicles", type=int, default=250)
     parser.add_argument("--page-size", type=int, default=50)
@@ -273,7 +274,7 @@ def main() -> int:
     segment_by_id = {item["id"]: item for item in segments}
     candidates: dict[int, str | None] = {vehicle_id: None for vehicle_id in args.vehicle_id}
 
-    if args.include_seed_vehicles and Path(args.seed_vehicles_file).exists():
+    if args.include_seed_vehicles and not args.skip_seed_vehicles and Path(args.seed_vehicles_file).exists():
         for item in load_json(args.seed_vehicles_file):
             candidates[int(item["vehicle_id"])] = item.get("segment_id")
 
