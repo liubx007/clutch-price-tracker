@@ -35,35 +35,71 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Check Clutch price
-        id: track
+      - name: Check original HR-V price
+        id: track_hrv
         run: |
           python car_price_tracker/track_clutch_price.py \
             --vehicle-id 115601 \
             --province NS \
             --state-file car_price_tracker/history/vehicle_115601.json \
-            --issue-body-file car_price_tracker/last_issue.md \
-            --public-status-file docs/status.json
+            --issue-body-file car_price_tracker/last_issue_115601.md \
+            --public-status-file docs/status_115601.json
+
+      - name: Check white HR-V price
+        id: track_white_hrv
+        run: |
+          python car_price_tracker/track_clutch_price.py \
+            --vehicle-id 107537 \
+            --province NS \
+            --state-file car_price_tracker/history/vehicle_107537.json \
+            --issue-body-file car_price_tracker/last_issue_107537.md \
+            --public-status-file docs/status_107537.json
 
       - name: Mirror public status for root Pages
-        run: cp docs/status.json status.json
+        run: |
+          cp docs/status_115601.json docs/status.json
+          cp docs/status_115601.json status.json
+          cp docs/status_115601.json status_115601.json
+          cp docs/status_107537.json status_107537.json
 
       - name: Commit tracker outputs
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add car_price_tracker/history/vehicle_115601.json car_price_tracker/last_issue.md docs/status.json status.json
-          git diff --cached --quiet || git commit -m "Update Clutch vehicle 115601 price history"
+          git add \
+            car_price_tracker/history/vehicle_115601.json \
+            car_price_tracker/history/vehicle_107537.json \
+            car_price_tracker/last_issue_115601.md \
+            car_price_tracker/last_issue_107537.md \
+            docs/status.json \
+            docs/status_115601.json \
+            docs/status_107537.json \
+            status.json \
+            status_115601.json \
+            status_107537.json
+          git diff --cached --quiet || git commit -m "Update Clutch vehicle price history"
           git push
 
-      - name: Open notification issue
-        if: steps.track.outputs.changed == 'true'
+      - name: Open original HR-V notification issue
+        if: steps.track_hrv.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VEHICLE_NAME: ${{ steps.track.outputs.vehicle_name }}
-          PRICE: ${{ steps.track.outputs.price }}
-          WEBSITE_STATE: ${{ steps.track.outputs.website_state }}
+          VEHICLE_NAME: ${{ steps.track_hrv.outputs.vehicle_name }}
+          PRICE: ${{ steps.track_hrv.outputs.price }}
+          WEBSITE_STATE: ${{ steps.track_hrv.outputs.website_state }}
         run: |
           gh issue create \
             --title "Clutch change: ${VEHICLE_NAME} now CAD ${PRICE} (${WEBSITE_STATE})" \
-            --body-file car_price_tracker/last_issue.md
+            --body-file car_price_tracker/last_issue_115601.md
+
+      - name: Open white HR-V notification issue
+        if: steps.track_white_hrv.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VEHICLE_NAME: ${{ steps.track_white_hrv.outputs.vehicle_name }}
+          PRICE: ${{ steps.track_white_hrv.outputs.price }}
+          WEBSITE_STATE: ${{ steps.track_white_hrv.outputs.website_state }}
+        run: |
+          gh issue create \
+            --title "Clutch change: ${VEHICLE_NAME} now CAD ${PRICE} (${WEBSITE_STATE})" \
+            --body-file car_price_tracker/last_issue_107537.md

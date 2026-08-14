@@ -1,16 +1,18 @@
 # Clutch Price Tracker
 
-Cloud-ready price tracker for <https://www.clutch.ca/vehicles/115601>.
+Cloud-ready price tracker for two Clutch Honda HR-V listings:
 
-It checks the public Clutch API for the tracked vehicle, stores price history in JSON, and uses GitHub Actions to run online every 6 hours. When tracked fields change, the workflow opens a GitHub Issue as the notification.
+- Original HR-V: <https://www.clutch.ca/vehicles/115601>
+- White HR-V: <https://www.clutch.ca/vehicles/107537>
 
-## Current Vehicle
+It checks the public Clutch API for each tracked vehicle, stores price history in JSON, and uses GitHub Actions to run online every 6 hours. When tracked fields change, the workflow opens a GitHub Issue as the notification.
 
-- Vehicle: 2023 Honda HR-V LX
-- Province: NS
-- Last recorded price: CAD $26,790
-- Last recorded admin fee: CAD $899
-- Last recorded listing state: `COMING_SOON`
+## Current Vehicles
+
+- Original HR-V: `car_price_tracker/history/vehicle_115601.json`
+- White HR-V: `car_price_tracker/history/vehicle_107537.json`
+- Public dashboard data: `docs/status_115601.json` and `docs/status_107537.json`
+- Backward-compatible original HR-V status: `docs/status.json`
 
 ## Run Locally
 
@@ -34,4 +36,3 @@ python car_price_tracker\track_clutch_price.py
 The workflow has enough permission to commit updated history and open Issues. No extra Python dependencies or secrets are required.
 
 Clutch may temporarily return `202` or `403` if checked repeatedly in a short window. The script retries, and the 6-hour schedule keeps traffic gentle.
-

@@ -85,6 +85,45 @@
         white-space: nowrap;
       }
 
+      .vehicle-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin: 0 0 14px;
+      }
+
+      .vehicle-tab {
+        appearance: none;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--muted);
+        cursor: pointer;
+        display: grid;
+        gap: 4px;
+        min-height: 66px;
+        padding: 12px 14px;
+        text-align: left;
+      }
+
+      .vehicle-tab strong {
+        color: var(--text);
+        font-size: 16px;
+        line-height: 1.25;
+      }
+
+      .vehicle-tab span {
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .vehicle-tab[aria-selected="true"] {
+        border-color: rgba(10, 111, 90, 0.55);
+        box-shadow: inset 0 0 0 1px rgba(10, 111, 90, 0.32), var(--shadow);
+        color: var(--accent-strong);
+      }
+
       .hero {
         display: grid;
         overflow: hidden;
@@ -434,6 +473,17 @@
         <a class="open-link" id="vehicleLink" href="https://www.clutch.ca/vehicles/115601">打开原车源</a>
       </nav>
 
+      <section class="vehicle-tabs" id="vehicleTabs" role="tablist" aria-label="追踪车辆">
+        <button class="vehicle-tab" type="button" role="tab" aria-selected="true" data-vehicle-index="0">
+          <span>车源 115601</span>
+          <strong>原来的 HR-V</strong>
+        </button>
+        <button class="vehicle-tab" type="button" role="tab" aria-selected="false" data-vehicle-index="1">
+          <span>车源 107537</span>
+          <strong>白色 HR-V</strong>
+        </button>
+      </section>
+
       <section class="hero" aria-live="polite">
         <div class="photo-wrap">
           <img class="vehicle-photo" id="vehiclePhoto" alt="Tracked vehicle" src="">
@@ -540,6 +590,21 @@
         maximumFractionDigits: 0
       });
       const number = new Intl.NumberFormat("en-CA");
+      const trackedVehicles = [
+        {
+          label: "原来的 HR-V",
+          statusUrl: "status_115601.json",
+          fallbackStatusUrl: "status.json",
+          sourceUrl: "https://www.clutch.ca/vehicles/115601"
+        },
+        {
+          label: "白色 HR-V",
+          statusUrl: "status_107537.json",
+          sourceUrl: "https://www.clutch.ca/vehicles/107537"
+        }
+      ];
+      let activeVehicleIndex = 0;
+      let activeStatus = null;
 
       function formatMoney(value) {
         return typeof value === "number" ? money.format(value) : "--";
@@ -575,6 +640,41 @@
         const el = document.getElementById(id);
         el.textContent = value || "--";
         el.classList.toggle("warn", Boolean(warn));
+      }
+
+      function vehicleConfig(index = activeVehicleIndex) {
+        return trackedVehicles[index] || trackedVehicles[0];
+      }
+
+      function setActiveTab(index) {
+        document.querySelectorAll(".vehicle-tab").forEach((tab) => {
+          tab.setAttribute("aria-selected", String(Number(tab.dataset.vehicleIndex) === index));
+        });
+      }
+
+      async function fetchVehicleStatus(config) {
+        const urls = [config.statusUrl, config.fallbackStatusUrl].filter(Boolean);
+        let lastError = null;
+        for (const url of urls) {
+          try {
+            const response = await fetch(`${url}?cache=${Date.now()}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return await response.json();
+          } catch (error) {
+            lastError = error;
+          }
+        }
+        throw lastError || new Error("status unavailable");
+      }
+
+      function handleLoadError(error) {
+        const config = vehicleConfig();
+        setText("title", config.label);
+        setText("subtitle", `读取 ${config.statusUrl} 失败：${error.message}`);
+        setBadge("state", "读取失败", true);
+        activeStatus = null;
+        chartSubtitleBase = "等待更多检查点";
+        drawChart([]);
       }
 
       function purchaseStatus(item) {
@@ -826,10 +926,18 @@
         showChartTooltip(event);
       }
 
-      async function loadStatus() {
-        const response = await fetch(`status.json?cache=${Date.now()}`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const status = await response.json();
+      async function loadStatus(index = activeVehicleIndex, options = {}) {
+        const isVehicleChange = index !== activeVehicleIndex || options.resetZoom;
+        activeVehicleIndex = index;
+        setActiveTab(index);
+        if (isVehicleChange) {
+          chartZoom = 1;
+          hideChartTooltip();
+        }
+
+        const config = vehicleConfig(index);
+        const status = await fetchVehicleStatus(config);
+        activeStatus = status;
         const latest = status.latest || {};
         const latestValid = status.latest_valid || (status.history || []).slice().reverse().find((item) => item.check_status !== "unavailable" && typeof item.price === "number") || latest;
         const display = latest.check_status === "unavailable" ? latestValid : latest;
@@ -875,23 +983,25 @@
         setBadge("visibility", latest.visible_on_site ? "页面可见" : "页面不可见", !latest.visible_on_site);
 
         const link = document.getElementById("vehicleLink");
-        link.href = vehicle.url || display.url || link.href;
+        link.href = vehicle.url || display.url || config.sourceUrl;
         renderHistory(history);
         drawChart(chartHistory.length ? chartHistory : [latest]);
         scrollChartToLatest();
       }
 
-      loadStatus().catch((error) => {
-        setText("subtitle", `读取 status.json 失败：${error.message}`);
-        setBadge("state", "读取失败", true);
-        drawChart([]);
+      document.querySelectorAll(".vehicle-tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const index = Number(tab.dataset.vehicleIndex);
+          loadStatus(index, { resetZoom: true }).catch(handleLoadError);
+        });
       });
 
+      loadStatus().catch(handleLoadError);
+
       window.addEventListener("resize", () => {
-        fetch(`status.json?cache=${Date.now()}`)
-          .then((response) => response.json())
-          .then((status) => drawChart(status.chart_history || (status.history || []).slice(-90)))
-          .catch(() => {});
+        if (!activeStatus) return;
+        const history = activeStatus.history || [];
+        drawChart(activeStatus.chart_history || history.slice(-90));
       });
 
       const chartCanvas = document.getElementById("priceChart");
