@@ -1,14 +1,8 @@
 {
-  "generated_at": "2026-09-14T21:53:04+00:00",
+  "generated_at": "2026-09-15T04:58:57+00:00",
   "initialized": false,
-  "changed": true,
-  "changed_fields": [
-    "website_state",
-    "visible_on_site",
-    "current_disposition",
-    "purchase_status",
-    "check_status"
-  ],
+  "changed": false,
+  "changed_fields": [],
   "vehicle": {
     "id": 115601,
     "name": "Honda HR-V LX",
@@ -25,7 +19,7 @@
   },
   "province": "NS",
   "latest": {
-    "checked_at": "2026-09-14T21:53:04+00:00",
+    "checked_at": "2026-09-15T04:58:57+00:00",
     "vehicle_id": 115601,
     "url": "https://www.clutch.ca/vehicles/115601",
     "image_url": "https://fastly.clutch.ca/f51534df-55a0-4953-9020-4a90578f9e85.jpg?class=card_photo",
@@ -53,7 +47,7 @@
     "check_error": "Could not fetch Clutch vehicle after 4 attempts: HTTP 403: "
   },
   "previous": {
-    "checked_at": "2026-09-14T12:51:40+00:00",
+    "checked_at": "2026-09-14T21:53:04+00:00",
     "vehicle_id": 115601,
     "url": "https://www.clutch.ca/vehicles/115601",
     "image_url": "https://fastly.clutch.ca/f51534df-55a0-4953-9020-4a90578f9e85.jpg?class=card_photo",
@@ -72,13 +66,13 @@
     "subtotal_before_tax": 26289,
     "tax_rate": 0.15,
     "estimated_after_tax": 30232.35,
-    "website_state": "SALE_PENDING",
+    "website_state": "UNAVAILABLE",
     "listing_type": "LISTED",
-    "visible_on_site": true,
-    "current_disposition": "RETAIL",
-    "purchase_status": "sale_pending",
-    "check_status": "available",
-    "check_error": null
+    "visible_on_site": false,
+    "current_disposition": "UNAVAILABLE",
+    "purchase_status": "unavailable",
+    "check_status": "unavailable",
+    "check_error": "Could not fetch Clutch vehicle after 4 attempts: HTTP 403: "
   },
   "latest_valid": {
     "checked_at": "2026-09-14T12:51:40+00:00",
@@ -7247,11 +7241,9 @@
       "purchase_status": "unavailable",
       "check_status": "unavailable",
       "check_error": "Could not fetch Clutch vehicle after 4 attempts: HTTP 403: "
-    }
-  ],
-  "chart_history": [
+    },
     {
-      "checked_at": "2026-08-21T13:11:46+00:00",
+      "checked_at": "2026-09-15T04:58:57+00:00",
       "vehicle_id": 115601,
       "url": "https://www.clutch.ca/vehicles/115601",
       "image_url": "https://fastly.clutch.ca/f51534df-55a0-4953-9020-4a90578f9e85.jpg?class=card_photo",
@@ -7265,19 +7257,21 @@
       "drivetrain": "AWD",
       "fuel_type": "Gasoline",
       "province": "NS",
-      "price": 25990,
+      "price": 25390,
       "admin_fee": 899,
-      "subtotal_before_tax": 26889,
+      "subtotal_before_tax": 26289,
       "tax_rate": 0.15,
-      "estimated_after_tax": 30922.35,
-      "website_state": null,
+      "estimated_after_tax": 30232.35,
+      "website_state": "UNAVAILABLE",
       "listing_type": "LISTED",
-      "visible_on_site": true,
-      "current_disposition": "RETAIL",
-      "purchase_status": "available",
-      "check_status": "available",
-      "check_error": null
-    },
+      "visible_on_site": false,
+      "current_disposition": "UNAVAILABLE",
+      "purchase_status": "unavailable",
+      "check_status": "unavailable",
+      "check_error": "Could not fetch Clutch vehicle after 4 attempts: HTTP 403: "
+    }
+  ],
+  "chart_history": [
     {
       "checked_at": "2026-08-21T18:57:05+00:00",
       "vehicle_id": 115601,
@@ -9744,6 +9738,34 @@
     },
     {
       "checked_at": "2026-09-14T21:53:04+00:00",
+      "vehicle_id": 115601,
+      "url": "https://www.clutch.ca/vehicles/115601",
+      "image_url": "https://fastly.clutch.ca/f51534df-55a0-4953-9020-4a90578f9e85.jpg?class=card_photo",
+      "name": "Honda HR-V LX",
+      "year": 2023,
+      "make": "Honda",
+      "model": "HR-V",
+      "trim": "LX",
+      "mileage": 39531,
+      "exterior_color": "Grey",
+      "drivetrain": "AWD",
+      "fuel_type": "Gasoline",
+      "province": "NS",
+      "price": 25390,
+      "admin_fee": 899,
+      "subtotal_before_tax": 26289,
+      "tax_rate": 0.15,
+      "estimated_after_tax": 30232.35,
+      "website_state": "UNAVAILABLE",
+      "listing_type": "LISTED",
+      "visible_on_site": false,
+      "current_disposition": "UNAVAILABLE",
+      "purchase_status": "unavailable",
+      "check_status": "unavailable",
+      "check_error": "Could not fetch Clutch vehicle after 4 attempts: HTTP 403: "
+    },
+    {
+      "checked_at": "2026-09-15T04:58:57+00:00",
       "vehicle_id": 115601,
       "url": "https://www.clutch.ca/vehicles/115601",
       "image_url": "https://fastly.clutch.ca/f51534df-55a0-4953-9020-4a90578f9e85.jpg?class=card_photo",
