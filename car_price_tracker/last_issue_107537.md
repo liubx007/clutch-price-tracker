@@ -10,8 +10,8 @@ The tracked Clutch vehicle was checked.
 - Purchase status: unavailable
 - Visible on site: False
 - Check status: unavailable
-- Checked at: 2026-09-28T14:03:20+00:00
-- Check error: Could not fetch Clutch vehicle after 4 attempts: Clutch API returned HTTP 202 with an empty body.
+- Checked at: 2026-09-28T23:20:09+00:00
+- Check error: Could not fetch Clutch vehicle after 4 attempts: HTTP 403: 
 
 Previous observation:
 - Price: CAD $24,990
@@ -20,4 +20,4 @@ Previous observation:
 - Website state: UNAVAILABLE
 - Purchase status: unavailable
 - Visible on site: False
-- Checked at: 2026-09-28T05:30:52+00:00
+- Checked at: 2026-09-28T14:03:20+00:00
