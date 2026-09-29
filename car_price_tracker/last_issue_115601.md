@@ -10,13 +10,13 @@ The tracked Clutch vehicle was checked.
 - Purchase status: available
 - Visible on site: True
 - Check status: available
-- Checked at: 2026-09-28T23:18:08+00:00
+- Checked at: 2026-09-29T05:46:11+00:00
 
 Previous observation:
 - Price: CAD $25,390
 - Admin fee: CAD $899
 - Subtotal before tax: CAD $26,289
-- Website state: UNAVAILABLE
-- Purchase status: unavailable
-- Visible on site: False
-- Checked at: 2026-09-28T14:01:20+00:00
+- Website state: None
+- Purchase status: available
+- Visible on site: True
+- Checked at: 2026-09-28T23:18:08+00:00
