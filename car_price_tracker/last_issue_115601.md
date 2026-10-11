@@ -10,14 +10,14 @@ The tracked Clutch vehicle was checked.
 - Purchase status: unavailable
 - Visible on site: False
 - Check status: unavailable
-- Checked at: 2026-10-10T21:48:42+00:00
+- Checked at: 2026-10-11T05:52:08+00:00
 - Check error: Could not fetch Clutch vehicle after 4 attempts: HTTP 403: 
 
 Previous observation:
 - Price: CAD $24,990
 - Admin fee: CAD $899
 - Subtotal before tax: CAD $25,889
-- Website state: SALE_PENDING
-- Purchase status: sale_pending
-- Visible on site: True
-- Checked at: 2026-10-10T12:35:07+00:00
+- Website state: UNAVAILABLE
+- Purchase status: unavailable
+- Visible on site: False
+- Checked at: 2026-10-10T21:48:42+00:00
