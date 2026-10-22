@@ -10,7 +10,7 @@ The tracked Clutch vehicle was checked.
 - Purchase status: unavailable
 - Visible on site: False
 - Check status: unavailable
-- Checked at: 2026-10-22T11:58:10+00:00
+- Checked at: 2026-10-22T17:14:47+00:00
 - Check error: Could not fetch Clutch vehicle after 4 attempts: HTTP 403: 
 
 Previous observation:
@@ -20,4 +20,4 @@ Previous observation:
 - Website state: UNAVAILABLE
 - Purchase status: unavailable
 - Visible on site: False
-- Checked at: 2026-10-22T04:53:25+00:00
+- Checked at: 2026-10-22T11:58:10+00:00
